@@ -1,121 +1,232 @@
-/**
- * @file start.S
+/******************************************************************************
  *
- * Initialization code for Embedded Xinu on the Raspberry Pi.
- */
-/* Embedded Xinu, Copyright (C) 2013.  All rights reserved. */
+ * startup code
+ * 
+ * 
+ * keith.ohara@gatech.edu
+ * April 2008
+ * IPRE Fluke Firmware
+ * http://www.raspberrypi.org/phpBB3/viewtopic.php?t=23149&p=217231
+ *
+ ******************************************************************************/
+
+#include <platform-local.h>
+/* Vectored Interrupt Controller */
+#include <pl190.h>
+
+#define S_FRAME_SIZE 72
+#define S_PC    60
+
+/* Stack Sizes */
+.set  UND_STACK_SIZE, 0x00000004		/* stack for "undefined instruction" interrupts is 4 bytes  */
+.set  ABT_STACK_SIZE, 0x00000004		/* stack for "abort" interrupts is 4 bytes                  */
+.set  FIQ_STACK_SIZE, 0x00000004		/* stack for "FIQ" interrupts  is 4 bytes         	    */
+.set  IRQ_STACK_SIZE, 0X00000200		/* stack for "IRQ" normal interrupts is 4 bytes    	    */
+.set  SVC_STACK_SIZE, 0x00000004		/* stack for "SVC" supervisor mode is 4 bytes  		    */
+.set  SYS_STACK_SIZE, 0x00002000                /* stack for "SYS" (user) mode is 8192 bytes (nulluser task/thread) */
 
 
-#include <arm.h>     /* For ARM_MODE_SYS */
+/* Standard definitions of Mode bits and Interrupt (I & F) flags in PSRs (program status registers) */
+.set  MODE_USR, 0x10            		/* Normal User Mode 				    */
+.set  MODE_FIQ, 0x11            		/* FIQ Processing Fast Interrupts Mode 		    */
+.set  MODE_IRQ, 0x12            		/* IRQ Processing Standard Interrupts Mode 	    */
+.set  MODE_SVC, 0x13            		/* Supervisor Processing Software Interrupts Mode   */
+.set  MODE_ABT, 0x17            		/* Abort Processing memory Faults Mode 	            */
+.set  MODE_UND, 0x1B            		/* Undefined Processing Undefined Instructions Mode 		*/
+.set  MODE_SYS, 0x1F            		/* System Running Priviledged Operating System Tasks  Mode	*/
 
-#define NULLSTK 8192
+.set  I_BIT, 0x80               		/* when I bit is set, IRQ is disabled (program status registers) */
+.set  F_BIT, 0x40               		/* when F bit is set, FIQ is disabled (program status registers) */
 
-.section .init
-	.globl _start
+.text
+.arm
 
-	/* _start:  Entry point of the Xinu kernel.  This will be the very first
-	 * byte of the kernel image and on the Raspberry Pi will be loaded by
-	 * the GPU at address 0x8000.  */
-	.func _start
+.global Reset_Handler
+.global IRQ_STACK_START
+.global _start
+.func   _start
+
 _start:
-	/* Save the pointer to the atags (ARM boot tags).  The bootloader should
-	 * pass this in r2, but override 0 with 0x100 to deal with old
-	 * bootloaders that assume Linux's default behavior.  (This is the case
-	 * with, for example, the bootloader on the BCM2835.)  */
-	ldr r3, =atags_ptr
-	cmp r2, #0
-	moveq r2, #0x100
-	str r2, [r3]
 
-	/* Continue execution at reset_handler.  */
-	b reset_handler
-	.endfunc
+# Exception Vectors
 
-/* ARM exception vector table.  This is copied to address 0.  See A2.6
- * "Exceptions" of the ARM Architecture Reference Manual.  */
-_vectors:
-	ldr pc, reset_addr    /* Reset handler */
-	ldr pc, undef_addr	  /* Undefined instruction handler */
-	ldr pc, swi_addr	  /* Software interrupt handler */
-	ldr pc, prefetch_addr /* Prefetch abort handler */
-	ldr pc, abort_addr	  /* Data abort handler */
-	ldr pc, reserved_addr /* Reserved */
-	ldr pc, irq_addr	  /* IRQ (Interrupt request) handler */
-	ldr pc, fiq_addr	  /* FIQ (Fast interrupt request) handler */
+_vectors:       
+                b       Reset_Addr         
+                ldr     PC, Undef_Addr
+                ldr     PC, SWI_Addr
+                ldr     PC, PAbt_Addr
+                ldr     PC, DAbt_Addr
+                ldr     PC, unused_handler
+                LDR     PC, IRQ_Addr
 
-reset_addr:     .word reset_handler
-undef_addr:     .word reset_handler
-swi_addr:       .word reset_handler
-prefetch_addr:  .word reset_handler
-abort_addr:     .word reset_handler
-reserved_addr:  .word reset_handler
-irq_addr:       .word irq_handler
-fiq_addr:       .word reset_handler
+                ldr     PC, FIQ_Addr
 
-_endvectors:
+Reset_Addr:     .word   Reset_Handler		/* defined in this module below  */
+Undef_Addr:     .word   UNDEF_Routine		/* defined in main.c  */
+SWI_Addr:       .word   SWI_Routine		/* defined in main.c  */
+PAbt_Addr:      .word   PAbt_Routine		/* defined in main.c  */
+DAbt_Addr:      .word   DAbt_Routine		/* defined in main.c  */
+FIQ_Addr:       .word   FIQ_Routine		/* defined in main.c  */
+IRQ_Addr:       .word   IRQ_Routine
+unused_handler: .word   UNDEF_Routine
+                .word   0			/* rounds the vectors and ISR addresses to 64 bytes total  */
 
-.section .text
+		/*.=.+0x1C0			*//* skip past Philips ISP ram usage (all the way to 0x40000200) */
 
-	/* reset_handler: Reset handler routine executed to start up the kernel,
-	 * when the ARM processor is reset, or (currently) when an unhandled
-	 * exception occurs.  */
-	.func reset_handler
-reset_handler:
+# Reset Handler
+Reset_Handler:  
+		/* Setup a stack for each mode - note that this only sets up a usable stack
+		for User mode.   Also each mode is setup with interrupts initially disabled. */
+    			  
+		ldr   r0, =_end
+                add r0, r0, #UND_STACK_SIZE
+   		msr   CPSR_c, #MODE_UND|I_BIT|F_BIT 	/* Undefined Instruction Mode  */
+    		mov   sp, r0
+    		add   r0, r0, #ABT_STACK_SIZE
+    		msr   CPSR_c, #MODE_ABT|I_BIT|F_BIT 	/* Abort Mode */
+    		mov   sp, r0
+    		add   r0, r0, #FIQ_STACK_SIZE
+    		msr   CPSR_c, #MODE_FIQ|I_BIT|F_BIT 	/* FIQ Mode */
+    		mov   sp, r0	
+   		add   r0, r0, #IRQ_STACK_SIZE
+    		msr   CPSR_c, #MODE_IRQ|I_BIT|F_BIT 	/* IRQ Mode */
+    		mov   sp, r0
+    		add   r0, r0, #SVC_STACK_SIZE
+    		msr   CPSR_c, #MODE_SVC|I_BIT|F_BIT 	/* Supervisor Mode */
+    		mov   sp, r0
+    		add   r0, r0, #SYS_STACK_SIZE
+    		msr   CPSR_c, #MODE_SYS|I_BIT|F_BIT 	/* User Mode */
+    		mov   sp, r0
 
-	/* Enter SYS mode with all interrupts disabled so the ARM processor is
-	 * in a known state. */
-	cpsid if, #ARM_MODE_SYS
+/* TEB TODO: This will need to be revisted when we get a real memory map */
+		/* Copy .data section (Copy from ROM to RAM) */
+                /*ldr     R1, =_etext
+                ldr     R2, =_data
+                ldr     R3, =_edata
+1:        	cmp     R2, R3
+                ldrlo   R0, [R1], #4
+                strlo   R0, [R2], #4
+                blo     1b
+*/
 
-	/* Copy the ARM exception table from .init section to address 0,
-	 * including the absolute address table.  Here we assume it is exactly
-	 * 16 words.  */
-	mov r0, #0
-	ldr r1, =_vectors
-	ldmia r1!, {r2-r9}
-	stmia r0!, {r2-r9}
-	ldmia r1!, {r2-r9}
-	stmia r0!, {r2-r9}
 
-	/* Enable the following features by modifying the ARM processor's
-	 * Control Register:
-	 *
-	 * - unaligned memory accesses   (bit 22)
-	 *
-	 * Note: Xinu shouldn't do any unaligned memory accesses on purpose, but
-	 * we found that gcc can still generate unaligned memory accesses for
-	 * tasks such as copying character strings.  (An alternative would be to
-	 * pass -mno-unaligned-access to gcc to prevent it from doing so.)  */
-	mrc p15, 0, r0, c1, c0, 0
-	orr r0, #1 << 22
-	mcr p15, 0, r0, c1, c0, 0
+/* relocate exception vectors */
+/* http://www.redacom.ch/software/arm_keil/docs_infopage/documents/arm_information/rvct_developer_guide.pdf */
+                MOV        r8, #0
+                ADR        r9, _vectors
+                LDMIA      r9!,{r0-r7}           /* Copy the vectors (8 words) */
+                STMIA      r8!,{r0-r7}
+                LDMIA      r9!,{r0-r7}           /* Copy the DCD'ed addresses*/
+                STMIA      r8!,{r0-r7}           /* (8 words again) */
 
-	/* Clear the .bss section of the kernel.  */
-	ldr r0, =_bss
-	ldr r1, =_end
-	mov r2, #0
-	mov r3, #0
-	mov r4, #0
-	mov r5, #0
-	b bssloopa
-bssloopb:
-	stmia r0!, {r2-r5}
-bssloopa:
-	cmp r0, r1 	/* check that we still haven't hit the end of bss yet */
-	blo bssloopb	/* if still below, go backwards and loop */
 
-	/* Put the null thread's stack directly after the kernel image.  */
-	add sp, r1, #NULLSTK
+		/* Clear .bss section (Zero init)  */
+                mov     R0, #0
+                ldr     R1, =_bss
+                ldr     R2, =_end
+2:		cmp     R1, R2
+                strlo   R0, [R1], #4
+                blo     2b
 
-	/* The remaining memory available to the ARM will be Xinu's "memheap"
-	 * region, which is used for dynamic memory allocation.  Set its
-	 * starting address.  */
-	ldr r0, =memheap
-	str sp, [r0]
+        mov r0, sp
+        add r0, r0, #8
+        ldr r1, =memheap
+        str r0, [r1]
 
-	/* Initialize the Raspberry Pi graphics subsystem.  */
-	/*bl screenInit*/
+		/* Enter the C code  */
+                b       _startup
 
-	/* Branch to the platform-independent C startup code, which takes no
-	 * parameters and never returns.  */
-	b nulluser
-	.endfunc
+.type panic_no_isr, %function
+/*
+ * Panic, since the the ISR that the VIC has given us is null.
+ */
+panic_no_isr:
+	ldr	r1, [r0, #VIC_IRQ_STATUS]
+	ldr	r0, panic_no_isr_str_ptr
+	mov	r2, #0
+	bl	kprintf
+	b	halt
+.section	.rodata
+panic_no_isr_str:
+	.asciz "Panic: Null interrupt handler! VIC_IRQ_STATUS: 0x%x\n"
+.text
+panic_no_isr_str_ptr:	.word	panic_no_isr_str
+
+
+IRQ_Routine:
+	/*
+	 * With pipelining on ARM, the PC is 2 instructions (8 bytes) ahead of
+	 * where we're currently executing. Usually the 'bl' instruction will
+	 * subtract 4 from the PC before storing it in LR, but since we came in
+	 * here via an exception we must do it ourselves.
+	 */
+	sub	lr, lr, #4
+
+	/* Store lr_irq and the SPSR on the user stack */
+	push	{r0}
+	sub	sp, sp, #4
+	stmia	sp, {sp}^		@ Grab sp_usr
+	ldmfd	sp, {r0}		@ And load it into r0
+	add	sp, sp, #4
+
+	sub	r0, r0, #4
+	stmia	r0, {lr}		@ Store lr_irq
+	mrs	lr, spsr
+	sub	r0, r0, #4
+	stmia	r0, {lr}		@ Store the spsr
+	pop	{r0}
+
+	msr	cpsr, #MODE_SYS|I_BIT	@ Switch to sysmode, keep irq disabled
+
+	/*
+	 * When we saved the lr_irq and the SPSR earlier, we weren't able to
+	 * modify the user mode stack pointer. Now we can adjust sp_usr to
+	 * account for what is effectively a 'push {spsr,lr_irq}'.
+	 */
+	sub	sp, sp, #8		@ Make room for lr_irq and SPSR
+	push	{r0-r3,r12,r14}		@ Push APCS registers
+
+       /* Call the ISR */
+       LDR    r0, =VIC_BASE_ADDRESS
+       LDR    r1, [r0, #VIC_VEC_ADDR] /* Discover source of interrupt */
+       cmp    r1, #0
+       beq    panic_no_isr
+       blx    r1
+
+       /* This is the responsibility of the C IRQ-Handler */
+#if 0
+       LDR r1, =(VIC_BASE_ADDRESS + VIC_VEC_ADDR)
+       STR r0, [r1]             /* Acknowledge Vectored IRQ has been serviced */
+#endif
+
+	pop	{r0-r3,r12,r14}		@ Push APCS registers
+
+	/*
+	 * Prematurely 'pop' here, since we can't modify sp_usr in IRQ mode when we
+	 * really do restore lr_irq and SPSR.
+	 */
+	add	sp, sp, #8
+
+	/* Enable interrupts and switch back to IRQ mode to use sp_irq again. */
+	msr	cpsr, #MODE_IRQ|I_BIT
+
+	/* Load lr_irq from the user stack */
+	push	{r0}
+	sub	sp, sp, #4
+	stmia	sp, {sp}^		@ Grab sp_usr
+	ldmfd	sp, {r0}		@ And load it into r0
+	add	sp, sp, #4
+
+	sub	r0, r0, #8		@ Undo the premature add from earlier
+	ldmfd	r0, {lr}
+	msr	spsr_cxsf, lr		@ Restore spsr
+	add	r0, r0, #4
+	ldmfd	r0, {lr}		@ Restore lr_isr
+	add	r0, r0, #4		@ nop
+	pop	{r0}
+
+	/* Restore cpsr and return. */
+	subs	pc, lr, #0		@ Special ISR return instruction
+
+.endfunc
+.end

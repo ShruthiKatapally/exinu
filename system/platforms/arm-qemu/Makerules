@@ -6,19 +6,20 @@ COMP = system/platforms/arm-qemu
 # Source files for this component
 S_FILES = ctxsw.S          \
           halt.S           \
-          intutils.S       \
-          irq_handler.S    \
-          memory_barrier.S \
           pause.S
 
 C_FILES = arch_setup_stack.c \
           bcm2835_power.c    \
-          dispatch.c         \
-          kexec.c            \
+          interrupt.c        \
           platforminit.c     \
           timer.c            \
-          usb_dwc_hcd.c      \
-          watchdog.c
+          watchdog.c         \
+          stubs.c            \
+          handlers.c         \
+          debug.c            \
+          vic.c              \
+          irq.c              \
+          clkupdate.c
 
 # Add the files to the compile source path
 DIR = ${TOPDIR}/${COMP}

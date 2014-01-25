@@ -1,87 +1,79 @@
 /**
- * @file timer.c
+ * Driver for the SP804 clock.
  *
- * This file contains code that interfaces with the system timer of the BCM2835
- * SoC used in the Raspberry Pi.
- *
- * See 12. "System Timer" of the BCM2835-ARM-Peripherals.pdf document for
- * details about this hardware.  However, this document does not say the
- * frequency the timer runs at (it's 1 MHz), nor does it say that some of the
- * output compare registers (0 and 2) are used by the GPU and therefore cannot
- * be used by ARM code, nor does it say what interrupt line the system timer is
- * connected to (it's IRQs 0-3 mapped linearly onto the output compare
- * registers).
- *
- * See http://xinu-os.org/BCM2835_System_Timer for more information about this
- * hardware.
+ * @author Travis Brown
+ * @date November 16, 2012
+ * References:
+ * http://infocenter.arm.com/help/topic/com.arm.doc.ddi0271d/DDI0271.pdf
+ * http://infocenter.arm.com/help/topic/com.arm.doc.ddi0287b/DDI0287B_arm926ejs_dev_chip_technical_reference_manual.pdf
+ * http://lxr.free-electrons.com/source/arch/arm/common/timer-sp.c?v=3.3#L90
  */
-/* Embedded Xinu, Copyright (C) 2013.  All rights reserved. */
 
-#include <clock.h>
-#include "bcm2835.h"
+#include <stddef.h>
+#include "timer.h"
+#include "interrupt.h"
+#include "vic.h"
 
-/** Layout of the BCM2835 System Timer's registers.  */
-struct bcm2835_timer_regs {
-    uint CS;  /** System Timer Control/Status */
-    uint CLO; /** System Timer Counter Lower 32 bits */
-    uint CHI; /** System Timer Counter Higher 32 bits */
-    uint C0;  /** System Timer Compare 0.  DO NOT USE; is used by GPU.  */
-    uint C1;  /** System Timer Compare 1 */
-    uint C2;  /** System Timer Compare 2.  DO NOT USE; is used by GPU.  */
-    uint C3;  /** System Timer Compare 3 */
-};
+// XINU interrupt handler in clkhandler.c
+void clkhandler( void ) ;
 
-#define BCM2835_SYSTEM_TIMER_MATCH_0 (1 << 0)
-#define BCM2835_SYSTEM_TIMER_MATCH_1 (1 << 1)
-#define BCM2835_SYSTEM_TIMER_MATCH_2 (1 << 2)
-#define BCM2835_SYSTEM_TIMER_MATCH_3 (1 << 3)
+static volatile struct spc804_timer *timer0 = (struct spc804_timer *) 0x101E2000;
+static volatile struct spc804_timer_version *timer_version = (struct
+        spc804_timer_version *) 0x101E2FE0;
 
-static volatile struct bcm2835_timer_regs * const regs =
-        (volatile struct bcm2835_timer_regs*)SYSTEM_TIMER_REGS_BASE;
-
-/* clkcount() interface is documented in clock.h  */
 /**
- * @detail
- *
- * Raspberry-Pi specific note:  This function returns the low-order 32 bits of
- * the BCM2835's free-running counter.  This counter runs at 1 MHz and therefore
- * overflows every 4295 seconds.
+ * Interrupt handler that flashes the LED once a second.
  */
-ulong clkcount(void)
+
+int timerInterrupts = 0;
+void timer_interrupt( void )
 {
-    ulong count;
-
-    pre_peripheral_read_mb();
-
-    count = regs->CLO;
-
-    post_peripheral_read_mb();
-
-    return count;
+    /* TEB: This causes us to crash after the 2nd interrupt. Why?! */
+    static int ms_counter = 0;
+    if ( ms_counter++ >= 100  )
+    {
+        ms_counter = 0;
+    } 
+    // Handle the VIC interrupt.
+    timer0->int_clr = 1;
+    irq_handled();
 }
 
-/* clkupdate() interface is documented in clock.h  */
-void clkupdate(ulong cycles)
+void timer_reset_interrupt(void)
 {
-    pre_peripheral_write_mb();
+    timer0->int_clr = 1;
+    irq_handled();
+}
 
-    /* To set the timer, we are using C3 (System Timer Compare 3), which is one
-     * of the System Timer's output compare registers not being used by the GPU.
-     * When the low bits (CLO) of the timer match C3, the hardware will generate
-     * a timer interrupt.  */
+void timer_init( void )
+{
+    /* Double-check the struct.*/
+    /*kprintf( "load: %x, value: %x, ctrl: %x\n",
+	     &(timer0->load),
+	     &(timer0->value),
+	     &(timer0->ctrl));*/
 
-    /* First clear the current interrupt, if any, by clearing the
-     * BCM2835_SYSTEM_TIMER_MATCH_3 bit in the timer control/status register.
-     * According to the Broadcom documentation, this must be done by _writing_ a
-     * 1 to the bit to be cleared. */
-    regs->CS = BCM2835_SYSTEM_TIMER_MATCH_3;
+    /*
+    for ( i = 0; i < 4; i++ )
+    {
+        kprintf("peripheralID[%d]: %02x\n", i, timer_version->peripheralID[i]
+                % 0xff);
+    }*/
+    disable_irq( VIC_TIMER0 );
+    timer0->ctrl &= ~TIMER_ENABLE;
 
-    /* Next, set up the new value in the C3 output compare register.  This is
-     * done by reading the current low-order bits of the counter and adding the
-     * requested number of cycles.  Note that wraparounds will necessarily be
-     * handled correctly because the output compare registers are by design only
-     * 32 bits.  */
-    regs->C3 = regs->CLO + cycles;
+    // Need to set pclk
+    timer0->load = 60000;
 
-    post_peripheral_write_mb();
+    timer0->ctrl = ( TIMER_SIZE_MSK | TIMER_INT_EN | TIMER_MODE_PD );
+    timer0->ctrl |= ( TIMER_ENABLE );
+
+    // Registration should happen in clkinit
+    //enable_irq( VIC_TIMER0 );
+
+    //timer0->ctrl |= TIMER_PRS_MSK & (3 << 3);
+
+    //register_irq( VIC_TIMER0, clkhandler );
+//    register_irq( VIC_TIMER0, timer_interrupt );
+    //enable_irq( VIC_TIMER0 );
 }

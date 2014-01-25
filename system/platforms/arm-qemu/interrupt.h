@@ -1,29 +1,39 @@
 /**
  * @file interrupt.h
  * 
- * Constants and declarations associated with interrupt handling.
+ * Constants and declarations associated with interrupt and exception
+ * processing.
+ *
  */
-/* Embedded Xinu, Copyright (C) 2009, 2013.  All rights reserved. */
 
 #ifndef _INTERRUPT_H_
 #define _INTERRUPT_H_
 
-#include <stddef.h>
+typedef void (__attribute__((interrupt("IRQ"))) *irq_handler)( void );
 
-typedef interrupt (*interrupt_handler_t)(void);
-
-extern interrupt_handler_t interruptVector[];
-
+/*
+ * irqmasks are laid out like the following:
+ * 
+ * bits 0-15: whether a given interrupt is enabled or not.
+ * bit 16: whether interrupts are enabled (1) or disabled (0)
+ *
+ * The reason for this is that restore() is responsible
+ *  for enabling/disabling interrupts as well as restoring
+ *  the IRQ mask. 
+ *
+ * See Comer, "OS Design: The XINU approach, Linksys edition," pg. 40.
+ */
 typedef unsigned long irqmask;  /**< machine status for disable/restore  */
 
-
-void enable(void);
+/* Interrupt enabling function prototypes */
 irqmask disable(void);
 irqmask restore(irqmask);
-void enable_irq(irqmask);
-void disable_irq(irqmask);
+irqmask enable(void);
+irqmask enable_irq( int irq );
+irqmask disable_irq( int irq );
+void register_irq( int irq, irq_handler handler );
+irq_handler get_irq(int irq);
+void irq_handled( void );
+int in_interrupt( void );
 
-/* Include IRQ definitions  */
-#include "bcm2835.h"
-
-#endif /* _INTERRUPT_H_ */
+#endif                          /* _INTERRUPT_H_ */
