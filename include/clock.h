@@ -17,7 +17,14 @@
  * schedules the timer interrupt per second, @a not to the number of native
  * clock cycles per second.
  */
-#define CLKTICKS_PER_SEC  1000
+ 
+ /*Due to a combination of the VIC emulator and the timer routine being too slow. Emulator will not work values >=90*/
+ 
+#ifdef ARM_QEMU 
+  #define CLKTICKS_PER_SEC  10
+#else
+   #define CLKTICKS_PER_SEC  1000
+#endif
 
 extern volatile ulong clkticks;
 extern volatile ulong clktime;
