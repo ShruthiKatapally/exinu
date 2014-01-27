@@ -17,6 +17,9 @@
 #PLATFORM := x86
 PLATFORM := arm-qemu
 
+USERNAME = adorwat
+NODE = 3
+
 # Filename of boot image to create (platform can override it if really needed)
 BOOTIMAGE := xinu.boot
 
@@ -349,6 +352,19 @@ realclean: clean libclean confclean $(PLATCLEAN)
 	rm -f ../system/conf.c
 	rm -f vn version $(TOPDIR)/include/version.h
 	rm -f Makefile.bak
+
+download:
+	ssh ${USERNAME}@cyclops.soic.indiana.edu rm -f /home/tftpboot/rpi${NODE}.img
+	scp xinu.bin ${USERNAME}@cyclops.soic.indiana.edu:/home/tftpboot/rpi${NODE}.img
+	ssh ${USERNAME}@cyclops.soic.indiana.edu chmod go+rw /home/tftpboot/rpi${NODE}.img
+	rpipower off ${NODE}
+	sleep 1
+	rpipower on ${NODE}
+
+reset:
+	rpipower off ${NODE}
+	sleep 1
+	rpipower on ${NODE}
 
 qemu:
 	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot -s 
