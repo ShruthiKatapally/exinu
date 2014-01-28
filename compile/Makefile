@@ -355,7 +355,7 @@ realclean: clean libclean confclean $(PLATCLEAN)
 
 download:
 	ssh ${USERNAME}@cyclops.soic.indiana.edu rm -f /home/tftpboot/rpi${NODE}.img
-	scp xinu.bin ${USERNAME}@cyclops.soic.indiana.edu:/home/tftpboot/rpi${NODE}.img
+	scp ${BOOTIMAGE} ${USERNAME}@cyclops.soic.indiana.edu:/home/tftpboot/rpi${NODE}.img
 	ssh ${USERNAME}@cyclops.soic.indiana.edu chmod go+rw /home/tftpboot/rpi${NODE}.img
 	rpipower off ${NODE}
 	sleep 1

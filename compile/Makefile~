@@ -17,6 +17,9 @@
 #PLATFORM := x86
 PLATFORM := arm-qemu
 
+USERNAME = adorwat
+NODE = 3
+
 # Filename of boot image to create (platform can override it if really needed)
 BOOTIMAGE := xinu.boot
 
@@ -82,7 +85,7 @@ CFLAGS  += $(DEBUG)
 #
 # Note: this -I option is not used for C headers; instead it's used in case the
 # platform wants to include other files directly from assembly sources.
-ASFLAGS := -I$(TOPDIR)/system/platforms/$(PLATFORM)
+ASFLAGS := -I$(TOPDIR)/system/platforms/$(PLATFORM) -g
 
 # Set linker flags common to all platforms.  platformVars can add additional
 # flags if needed.  Do not use the "-Wl," prefix either here on in platformVars.
@@ -350,10 +353,23 @@ realclean: clean libclean confclean $(PLATCLEAN)
 	rm -f vn version $(TOPDIR)/include/version.h
 	rm -f Makefile.bak
 
-qemu:
-	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot -S 
+download:
+	ssh ${USERNAME}@cyclops.soic.indiana.edu rm -f /home/tftpboot/rpi${NODE}.img
+	scp xinu.bin ${USERNAME}@cyclops.soic.indiana.edu:/home/tftpboot/rpi${NODE}.img
+	ssh ${USERNAME}@cyclops.soic.indiana.edu chmod go+rw /home/tftpboot/rpi${NODE}.img
+	rpipower off ${NODE}
+	sleep 1
+	rpipower on ${NODE}
 
-test1:
+reset:
+	rpipower off ${NODE}
+	sleep 1
+	rpipower on ${NODE}
+
+qemu:
+	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot -s 
+
+gdb:
 	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot -S -gdb tcp::5556
 
 
