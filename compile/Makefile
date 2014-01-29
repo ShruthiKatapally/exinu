@@ -16,6 +16,10 @@
 #
 PLATFORM := arm-rpi
 
+# These need to be changed
+NODE=0
+USERNAME=user
+
 # Filename of boot image to create (platform can override it if really needed)
 BOOTIMAGE := xinu.boot
 
@@ -400,3 +404,20 @@ DEPFILES := $(DEPFILES:%.S=%.d)
 # Ensure the default `make' target is set correctly--- it's supposed to be
 # $(BOOTIMAGE) and defined in "platformVars".
 .DEFAULT_GOAL := $(BOOTIMAGE)
+
+# For SoIC RPI cluster
+download:
+	ssh cyclops rm -f /home/tftpboot/rpi${NODE}.img
+	scp xinu.boot ${USERNAME}@cyclops:/home/tftpboot/rpi${NODE}.img
+	ssh cyclops chmod go+rw /home/tftpboot/rpi${NODE}.img
+	rpipower off ${NODE}
+	sleep 1
+	rpipower on ${NODE}
+reset:
+	rpipower off ${NODE}
+	sleep 1
+	rpipower on ${NODE}
+
+qemu:
+	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.bin -S -gdb tcp::5556
+
