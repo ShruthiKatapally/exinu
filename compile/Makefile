@@ -14,7 +14,7 @@
 #
 # $ make PLATFORM=arm-rpi
 #
-PLATFORM := x86
+PLATFORM := arm-rpi
 
 # Filename of boot image to create (platform can override it if really needed)
 BOOTIMAGE := xinu.boot
