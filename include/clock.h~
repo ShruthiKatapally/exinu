@@ -19,7 +19,6 @@
  */
  
  /*Due to a combination of the VIC emulator and the timer routine being too slow. Emulator will not work values >=90*/
- 
 #ifdef ARM_QEMU 
   #define CLKTICKS_PER_SEC  10
 #else

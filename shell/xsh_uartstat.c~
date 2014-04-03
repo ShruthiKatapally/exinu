@@ -103,7 +103,7 @@ shellcmd xsh_uartstat(int nargs, char *args[])
 static void uartThroughput(ushort uartnum)
 {
 
-#ifndef ARM_QEMU
+#ifndef
     uint cout, cin;
 
     struct uart *uptr;
