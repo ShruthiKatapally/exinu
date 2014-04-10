@@ -11,7 +11,6 @@
 #include <stdlib.h>
 
 #if NUART
-
 static void uartThroughput(ushort);
 
 /**
@@ -25,8 +24,6 @@ static void uartThroughput(ushort);
  */
 shellcmd xsh_uartstat(int nargs, char *args[])
 {
-
-#ifndef ARM_QEMU
     ushort dev, throughput = FALSE;
     char n;
 
@@ -95,15 +92,12 @@ shellcmd xsh_uartstat(int nargs, char *args[])
     }
 
     uartStat(dev);
-#endif    
 
     return 0;
 }
 
 static void uartThroughput(ushort uartnum)
 {
-
-#ifndef ARM_QEMU
     uint cout, cin;
 
     struct uart *uptr;
@@ -117,6 +111,5 @@ static void uartThroughput(ushort uartnum)
         printf("Tx: %4d bytes/sec, ", uptr->cout - cout);
         printf("Rx: %4d bytes/sec\n", uptr->cin - cin);
     }
-#endif    
 }
 #endif /* NUART */

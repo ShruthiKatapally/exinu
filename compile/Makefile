@@ -12,7 +12,7 @@
 # platform for this Embedded Xinu distribution, but you can override this on the
 # command line without modifying this Makefile; e.g. with
 #
-# $ make PLATFORM=arm-qemu  
+# $ make PLATFORM=arm-rpi
 #
 PLATFORM := arm-rpi
 
@@ -31,7 +31,7 @@ TOPDIR  := ..
 CFLAGS  :=
 
 # Do not perform linking until the end.
-CFLAGS  += -c -g
+CFLAGS  += -c
 
 # Optimize for size.
 CFLAGS  += -Os
@@ -85,7 +85,7 @@ CFLAGS  += $(DEBUG)
 #
 # Note: this -I option is not used for C headers; instead it's used in case the
 # platform wants to include other files directly from assembly sources.
-ASFLAGS := -I$(TOPDIR)/system/platforms/$(PLATFORM) -g
+ASFLAGS := -I$(TOPDIR)/system/platforms/$(PLATFORM)
 
 # Set linker flags common to all platforms.  platformVars can add additional
 # flags if needed.  Do not use the "-Wl," prefix either here on in platformVars.
@@ -352,26 +352,6 @@ realclean: clean libclean confclean $(PLATCLEAN)
 	rm -f ../system/conf.c
 	rm -f vn version $(TOPDIR)/include/version.h
 	rm -f Makefile.bak
-
-download:
-	ssh ${USERNAME}@cyclops.soic.indiana.edu rm -f /home/tftpboot/rpi${NODE}.img
-	scp ${BOOTIMAGE} ${USERNAME}@cyclops.soic.indiana.edu:/home/tftpboot/rpi${NODE}.img
-	ssh ${USERNAME}@cyclops.soic.indiana.edu chmod go+rw /home/tftpboot/rpi${NODE}.img
-	rpipower off ${NODE}
-	sleep 1
-	rpipower on ${NODE}
-
-reset:
-	rpipower off ${NODE}
-	sleep 1
-	rpipower on ${NODE}
-
-qemu:
-	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot -s 
-
-gdb:
-	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot -S -gdb tcp::5556
-
 
 ###################
 # Special targets #

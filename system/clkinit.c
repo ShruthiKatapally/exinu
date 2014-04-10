@@ -65,12 +65,7 @@ void clkinit(void)
 	set_evec(IRQBASE, (ulong)clockIRQ);
 #else
     /* register clock interrupt */
-    
-#ifdef ARM_QEMU
-    register_irq(IRQ_TIMER, clkhandler);
-#else
     interruptVector[IRQ_TIMER] = clkhandler;
-#endif
     enable_irq(IRQ_TIMER);
     clkupdate(platform.clkfreq / CLKTICKS_PER_SEC);
 #endif
