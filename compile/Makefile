@@ -18,6 +18,7 @@ PLATFORM := arm-rpi
 
 # These need to be changed
 NODE=0
+GPORT=55${NODE}
 USERNAME=user
 
 # Filename of boot image to create (platform can override it if really needed)
@@ -31,7 +32,7 @@ TOPDIR  := ..
 CFLAGS  :=
 
 # Do not perform linking until the end.
-CFLAGS  += -c
+CFLAGS  += -c -g
 
 # Optimize for size.
 CFLAGS  += -Os
@@ -85,7 +86,7 @@ CFLAGS  += $(DEBUG)
 #
 # Note: this -I option is not used for C headers; instead it's used in case the
 # platform wants to include other files directly from assembly sources.
-ASFLAGS := -I$(TOPDIR)/system/platforms/$(PLATFORM)
+ASFLAGS := -I$(TOPDIR)/system/platforms/$(PLATFORM) -g
 
 # Set linker flags common to all platforms.  platformVars can add additional
 # flags if needed.  Do not use the "-Wl," prefix either here on in platformVars.
@@ -422,4 +423,4 @@ qemu:
 	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot 
 
 qemu-gdb:
-	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot -S -gdb tcp::5556
+	qemu-system-arm -M versatilepb -m 128M -nographic -cpu arm1176  -kernel xinu.boot -S -gdb tcp::${GPORT}
