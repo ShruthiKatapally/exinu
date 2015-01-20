@@ -46,6 +46,9 @@ C_FILES += xsh_kexec.c
 # were to support it...)
 C_FILES += xsh_usbinfo.c
 
+# Hello Commands
+C_FILES += xsh_hello.c
+
 # Test commands
 C_FILES += xsh_test.c xsh_testsuite.c
 

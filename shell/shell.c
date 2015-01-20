@@ -18,6 +18,7 @@
 #include <framebuffer.h>
 
 const struct centry commandtab[] = {
+    {"hello", FALSE, xsh_hello},
 #if NETHER
     {"arp", FALSE, xsh_arp},
 #endif

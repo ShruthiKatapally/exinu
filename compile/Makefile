@@ -17,9 +17,9 @@
 PLATFORM := arm-rpi
 
 # These need to be changed
-NODE=0
+NODE=3
 GPORT=55${NODE}
-USERNAME=user
+USERNAME=jmadagun
 
 # Filename of boot image to create (platform can override it if really needed)
 BOOTIMAGE := xinu.boot

@@ -81,6 +81,7 @@ extern const struct centry commandtab[];
 extern ulong ncommand;               /**< number of commands in table   */
 
 /* Function prototypes */
+shellcmd xsh_hello(int, char *[]);
 thread shell(int, int, int);
 short lexan(char *, ushort, char *, char *[]);
 shellcmd xsh_arp(int, char *[]);
