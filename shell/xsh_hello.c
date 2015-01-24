@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include <shell.h>
+
 
 /**
  * @ingroup shell
@@ -19,6 +21,9 @@ shellcmd xsh_hello(int nargs, char *args[])
 {
 
 
+    int i = 0;
+    char str[SHELL_BUFLEN];
+    
     /* Output help, if '--help' argument was supplied */
     if (nargs == 2 && strcmp(args[1], "--help") == 0)
     {
@@ -33,11 +38,19 @@ shellcmd xsh_hello(int nargs, char *args[])
     /* Check for correct number of arguments */
     if (nargs > 2)
     {
-        fprintf(stderr, "%s: too many arguments\n", args[0]);
-        fprintf(stderr, "Try '%s --help' for more information\n",
-                args[0]);
-        return SYSERR;
+        memset(str,'\0',SHELL_BUFLEN);
+        for(i=1;args[i]!=NULL;i++)
+            strncat(str,args[i],strlen(args[i]));
+        
+	if(!strchr(str,'\'')&&!strchr(str,'\"'))
+        {
+            fprintf(stderr, "%s: too many arguments\n", args[0]);
+            fprintf(stderr, "Try '%s --help' for more information\n",
+                    args[0]);
+            return SYSERR;
+        }
     }
+
     if (nargs < 2)
     {
         fprintf(stderr, "%s: too few arguments\n", args[0]);
@@ -46,7 +59,17 @@ shellcmd xsh_hello(int nargs, char *args[])
         return SYSERR;
     }
 
-    printf("Hello %s, Welcome to the world of Xinu!!\n",args[1]);
+    if (nargs > 2)
+	    printf("Hello %s, Welcome to the world of Xinu!!\n",str);
+    else
+	    printf("Hello %s, Welcome to the world of Xinu!!\n",args[1]);
+
+    for(i = 1; args[i]!=NULL; i++)
+    {
+        //printf("arg[%d] = %s\n",i,args[i]);
+	memset(args[i],'\0',strlen(args[i]));
+    }
+    memset(str,'\0',SHELL_BUFLEN);
 
     return OK;
 }
