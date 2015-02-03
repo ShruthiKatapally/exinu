@@ -49,6 +49,9 @@ C_FILES += xsh_usbinfo.c
 # Hello Commands
 C_FILES += xsh_hello.c
 
+# prodcons Commands
+C_FILES += xsh_prodcons.c
+
 # Test commands
 C_FILES += xsh_test.c xsh_testsuite.c
 
