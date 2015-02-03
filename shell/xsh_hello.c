@@ -62,7 +62,7 @@ shellcmd xsh_hello(int nargs, char *args[])
     if (nargs > 2)
 	    printf("Hello %s, Welcome to the world of Xinu!!\n",str);
     else
-	    printf("Hello Shruthi and Jagdeesh %s, Welcome to the world of Xinu!!\n",args[1]);
+	    printf("Hello %s, Welcome to the world of Xinu!!\n",args[1]);
 
     for(i = 1; args[i]!=NULL; i++)
     {
