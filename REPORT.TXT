@@ -2,6 +2,7 @@ This text file is the report for Assignment-2.
 
 Does your program output any garbage? If yes, why?
 The program does not print any garbage. However, the command prompt "xsh$" gets mixed up with one of the displays between 50 and 60.
+Also, it was observed that the program will print all the values synchronously when both producer and consumer print the value of n using kprintf.
 
 Are all the produced values getting consumed? Check your program for a small count like 20.
 No, only the final value is getting consumed all the times. This is most probably because, the loop in the producer gets executed very fast and the consumer is unable to consume all the values.
