@@ -8,8 +8,6 @@ void producer(int count)
 	{
 		//produced value should get assigned to global variable 'n'.
 		n=i;
-		//print produced value e.g. produced : 8
-		printf("\nproduced : %d", n);
 	}
 }
 

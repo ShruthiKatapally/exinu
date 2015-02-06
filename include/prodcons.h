@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>   
 #include <shell.h>
+#include <limits.h>
 
 /*Global variable for producer consumer*/
 extern int n; /*this is just declaration*/

@@ -1,0 +1,21 @@
+This text file is the report for Assignment-2.
+
+Does your program output any garbage? If yes, why?
+The program does not print any garbage. However, the command prompt "xsh$" gets mixed up with one of the displays between 50 and 60.
+
+Are all the produced values getting consumed? Check your program for a small count like 20.
+No, only the final value is getting consumed all the times. This is most probably because, the loop in the producer gets executed very fast and the consumer is unable to consume all the values.
+
+The code uses the skeleton code provided in the assignment. However, as suggested in the class, printf statement is removed from the producer function.
+
+The task division for the assignment was as follows:
+Shruthi:
+prodcons.h
+xsh_prodcons.c
+Second round of testing
+
+Jagadeesh:
+producer.c
+consumer.c
+First round of testing
+

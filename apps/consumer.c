@@ -8,7 +8,8 @@ void consumer(int count)
 	{
 		//consume global variable 'n'.
 		//print consumed value e.g. consumed : 8
-		printf("\nconsumed : %d", n);
+		printf("\nconsumed # %d : %d", i, n);
 	}
+	printf("\n");
 }
 

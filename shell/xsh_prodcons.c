@@ -22,7 +22,7 @@ shellcmd xsh_prodcons(int nargs, char *args[])
     /* Output help, if '--help' argument was supplied */
     if (nargs == 2 && strcmp(args[1], "--help") == 0)
     {
-        printf("Usage: %s <number>\n\n", args[0]);
+        printf("Usage: %s <positive number>\n\n", args[0]);
         printf("Description:\n");
         printf("\tIllustration of Producer-Consumer model.\n");
         printf("Options:\n");
@@ -45,9 +45,9 @@ shellcmd xsh_prodcons(int nargs, char *args[])
     }
     
     /* Check if argument is a number */
-    if (count <1)
+    if (count < 1 || count > UINT_MAX)
     {
-	fprintf(stderr, "%s: accepts only number as input\n", args[0]);
+	fprintf(stderr, "%s: accepts positive numbers only\n", args[0]);
         fprintf(stderr, "Try '%s --help' for more information\n",
                     args[0]);
         return SYSERR;
