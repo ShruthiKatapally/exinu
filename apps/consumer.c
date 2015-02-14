@@ -1,14 +1,16 @@
 #include <prodcons.h>
 
-void consumer(int count)
+void consumer(semaphore consumed,semaphore produced,int count)
 {
 	int i;
 	//Code to consume values until less than equal to count, 
 	for ( i = 1; i <= count; i++)
 	{
+		wait(produced);
 		//consume global variable 'n'.
 		//print consumed value e.g. consumed : 8
-		printf("\nconsumed # %d : %d", i, n);
+		printf("\nconsumed at %d : %d \n", i, n);
+		signal(consumed);
 	}
 	printf("\n");
 }

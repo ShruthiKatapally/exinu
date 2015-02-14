@@ -6,6 +6,7 @@
 
 /* Global Variable n used as shared memory by producer and consumer.*/
 int n;
+semaphore consumed,produced;
 
 /**
  * @ingroup shell
@@ -18,7 +19,11 @@ int n;
 shellcmd xsh_prodcons(int nargs, char *args[])
 {
     int count = 2000;
-    
+    semaphore produced,consumed;
+	/*Initialise Semaphores*/
+	consumed = semcreate(1);
+	produced = semcreate(0);
+
     /* Output help, if '--help' argument was supplied */
     if (nargs == 2 && strcmp(args[1], "--help") == 0)
     {
@@ -53,8 +58,8 @@ shellcmd xsh_prodcons(int nargs, char *args[])
         return SYSERR;
     }
 
-    resume( create(producer, 1024, 20, "producer", 1, count) );
-    resume( create(consumer, 1024, 20, "consumer", 1, count) );
+    resume( create(producer, 1024, 20, "producer",3,consumed,produced,count) );
+    resume( create(consumer, 1024, 20, "consumer",3,consumed,produced,count) );
 
     return OK;
 }
