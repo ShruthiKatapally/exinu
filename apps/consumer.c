@@ -9,7 +9,7 @@ void consumer(semaphore consumed,semaphore produced,int count)
 		wait(produced);
 		//consume global variable 'n'.
 		//print consumed value e.g. consumed : 8
-		printf("\nconsumed at %d : %d \n", i, n);
+		printf("\nconsumer: iteration = %d, value = %d \n", i, n);
 		signal(consumed);
 	}
 	printf("\n");

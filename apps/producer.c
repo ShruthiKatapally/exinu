@@ -9,7 +9,7 @@ void producer(semaphore consumed,semaphore produced,int count)
 	wait (consumed);
 	//produced value should get assigned to global variable 'n'.
 	n=i;
-	printf("producer at %d is %d ",i,n);
+	printf("producer: iteration = %d, value = %d ",i,n);
 	signal(produced);
 	}
 }
