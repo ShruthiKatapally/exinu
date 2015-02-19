@@ -6,6 +6,7 @@
 
 /* Global Variable n used as shared memory by producer and consumer.*/
 int n;
+semaphore consumed,produced;
 
 /**
  * @ingroup shell
@@ -18,11 +19,15 @@ int n;
 shellcmd xsh_prodcons(int nargs, char *args[])
 {
     int count = 2000;
-    
+    semaphore produced,consumed;
+	/*Initialise Semaphores*/
+	consumed = semcreate(1);
+	produced = semcreate(0);
+
     /* Output help, if '--help' argument was supplied */
     if (nargs == 2 && strcmp(args[1], "--help") == 0)
     {
-        printf("Usage: %s <number>\n\n", args[0]);
+        printf("Usage: %s <positive number>\n\n", args[0]);
         printf("Description:\n");
         printf("\tIllustration of Producer-Consumer model.\n");
         printf("Options:\n");
@@ -45,16 +50,16 @@ shellcmd xsh_prodcons(int nargs, char *args[])
     }
     
     /* Check if argument is a number */
-    if (count <1)
+    if (count < 1 || count > UINT_MAX)
     {
-	fprintf(stderr, "%s: accepts only number as input\n", args[0]);
+	fprintf(stderr, "%s: accepts positive numbers only\n", args[0]);
         fprintf(stderr, "Try '%s --help' for more information\n",
                     args[0]);
         return SYSERR;
     }
 
-    resume( create(producer, 1024, 20, "producer", 1, count) );
-    resume( create(consumer, 1024, 20, "consumer", 1, count) );
+    resume( create(producer, 1024, 20, "producer",3,consumed,produced,count) );
+    resume( create(consumer, 1024, 20, "consumer",3,consumed,produced,count) );
 
     return OK;
 }
