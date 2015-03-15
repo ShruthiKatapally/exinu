@@ -25,18 +25,12 @@
  */
 syscall future_wait(future *fut)
 {
-    //register struct sement *semptr;
     register struct thrent *thrptr;
     irqmask im;
 
     im = disable();
-    /*if (isbadsem(sem))
-    {
-        restore(im);
-        return SYSERR;
-    }*/
+
     thrptr = &thrtab[thrcurrent];
-    //semptr = &semtab[sem];
 
     if (fut->state == FUTURE_EMPTY || fut->state == FUTURE_WAITING)
     {
@@ -52,12 +46,6 @@ syscall future_wait(future *fut)
 
 		case FUTURE_QUEUE:
 			thrptr->state = THRWAIT;
-
-			if(isempty(f->set_queue))
-				enqueue(thrcurrent, fut->get_queue);
-			else if(isempty(f->get_queue))
-				enqueue(thrcurrent, fut->set_queue);
-
 			resched();
 			break;
 

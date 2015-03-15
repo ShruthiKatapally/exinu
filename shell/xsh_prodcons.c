@@ -55,19 +55,40 @@ shellcmd xsh_prodcons(int nargs, char *args[])
 
     if(future_flag == 1)
     {
-	future *f1, *f2, *f3;
+	future *f1, *f2, *f3, *f_queue;
 
 	f1 = future_alloc(FUTURE_EXCLUSIVE);
 	f2 = future_alloc(FUTURE_EXCLUSIVE);
-	f3 = future_alloc(FUTURE_EXCLUSIVE);
+	//f3 = future_alloc(FUTURE_EXCLUSIVE);
+	f_queue = future_alloc(FUTURE_QUEUE);
 
 	resume( create(future_cons, 1024, 20, "fcons1", 1, f1) );
 	//resume( create(future_cons, 1024, 20, "fcons2", 1, f1) );
 	resume( create(future_prod, 1024, 20, "fprod1", 1, f1) );
 	resume( create(future_cons, 1024, 20, "fcons2", 1, f2) );
 	resume( create(future_prod, 1024, 20, "fprod2", 1, f2) );
-	resume( create(future_cons, 1024, 20, "fcons3", 1, f3) );
-	resume( create(future_prod, 1024, 20, "fprod3", 1, f3) );
+	//resume( create(future_cons, 1024, 20, "fcons3", 1, f3) );
+	//resume( create(future_prod, 1024, 20, "fprod3", 1, f3) );
+
+	// Test FUTURE_QUEUE
+	  resume( create(future_cons, 1024, 20, "fcons6", 1, f_queue) );
+	  resume( create(future_cons, 1024, 20, "fcons7", 1, f_queue) );
+	  resume( create(future_cons, 1024, 20, "fcons8", 1, f_queue) );
+	  resume( create(future_cons, 1024, 20, "fcons9", 1, f_queue) );
+	  resume( create(future_prod, 1024, 20, "fprod3", 1, f_queue) );
+	  resume( create(future_prod, 1024, 20, "fprod4", 1, f_queue) );
+	  resume( create(future_prod, 1024, 20, "fprod5", 1, f_queue) );
+	  resume( create(future_prod, 1024, 20, "fprod6", 1, f_queue) );
+
+	  if(future_free(f1)==SYSERR)
+		kprintf("future_free failed\n");
+	  if(future_free(f2)==SYSERR)
+		kprintf("future_free failed\n");
+	  //if(future_free(f3)==SYSERR)
+		//kprintf("future_free failed\n");
+	  if(future_free(f_queue)==SYSERR)
+		kprintf("future_free failed\n");
+
     }
     else
     {

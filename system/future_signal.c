@@ -24,16 +24,10 @@
  */
 syscall future_signal(future *fut)
 {
-    //register struct sement *semptr;
     irqmask im;
 
     im = disable();
-    /*if (isbadsem(sem))
-    {
-        restore(im);
-        return SYSERR;
-    }*/
-    //semptr = &semtab[sem];
+
     if (fut->state == FUTURE_VALID)
     {
 	    switch(fut->flag) {

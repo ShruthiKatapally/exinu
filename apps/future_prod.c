@@ -6,7 +6,6 @@ uint future_prod(future *fut) {
   for (i=0; i<=1000; i++) {
     j += i;
   }
-  //j=10;
   if(future_set(fut, j)==OK){
     //printf("future set to %d\n",fut->value);
     return OK;
