@@ -40,9 +40,24 @@ syscall future_wait(future *fut)
 
     if (fut->state == FUTURE_EMPTY || fut->state == FUTURE_WAITING)
     {
-        thrptr->state = THRWAIT;
-        fut->tid = thrcurrent;
-        resched();
+	switch(fut->flag) {
+		case FUTURE_EXCLUSIVE:
+			thrptr->state = THRWAIT;
+			if(fut->tid=-1) fut->tid = thrcurrent;
+			resched();
+			break;
+
+		case FUTURE_SHARED:
+			break;
+
+		case FUTURE_QUEUE:
+			break;
+
+		default:
+			//kprintf("invalid future flag\n");
+			return SYSERR;
+			break;
+	}
     }
     restore(im);
     return OK;
