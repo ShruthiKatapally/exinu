@@ -7,7 +7,7 @@ syscall future_set(future *f, int value) {
       case FUTURE_EXCLUSIVE:
         f->value = value;
         f->state = FUTURE_VALID;
-        //kprintf("future produced\n");
+        kprintf("future produced\n");
         future_signal(f);
         break;
 
@@ -36,17 +36,17 @@ syscall future_set(future *f, int value) {
         break;
 
       default:
-        //kprintf("invalid future flag\n");
+        kprintf("invalid future flag\n");
         return SYSERR;
         break;
     }
   } 
   else if(f->state == FUTURE_VALID){
-    //kprintf("future is not empty\n");
+    kprintf("future is not empty\n");
     return SYSERR;
   }
   else {
-    //kprintf("invalid future state\n");
+    kprintf("invalid future state\n");
     return SYSERR;
   }
   return OK;

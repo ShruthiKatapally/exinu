@@ -55,20 +55,18 @@ shellcmd xsh_prodcons(int nargs, char *args[])
 
     if(future_flag == 1)
     {
-	future *f1, *f2, *f3, *f_queue;
+	future *f_exclusive, *f_shared, *f_queue;
 
-	f1 = future_alloc(FUTURE_EXCLUSIVE);
-	f2 = future_alloc(FUTURE_EXCLUSIVE);
-	//f3 = future_alloc(FUTURE_EXCLUSIVE);
+	f_exclusive = future_alloc(FUTURE_EXCLUSIVE);
+	f_shared = future_alloc(FUTURE_SHARED);
 	f_queue = future_alloc(FUTURE_QUEUE);
+	//kprintf("future get q# %d \n\r future set q# %d\n\r",f_queue->get_queue,f_queue->set_queue);
 
-	resume( create(future_cons, 1024, 20, "fcons1", 1, f1) );
+	//resume( create(future_cons, 1024, 20, "fcons1", 1, f1) );
 	//resume( create(future_cons, 1024, 20, "fcons2", 1, f1) );
-	resume( create(future_prod, 1024, 20, "fprod1", 1, f1) );
-	resume( create(future_cons, 1024, 20, "fcons2", 1, f2) );
-	resume( create(future_prod, 1024, 20, "fprod2", 1, f2) );
-	//resume( create(future_cons, 1024, 20, "fcons3", 1, f3) );
-	//resume( create(future_prod, 1024, 20, "fprod3", 1, f3) );
+	//resume( create(future_prod, 1024, 20, "fprod1", 1, f1) );
+	//resume( create(future_cons, 1024, 20, "fcons2", 1, f2) );
+	//resume( create(future_prod, 1024, 20, "fprod2", 1, f2) );
 
 	// Test FUTURE_QUEUE
 	  resume( create(future_cons, 1024, 20, "fcons6", 1, f_queue) );

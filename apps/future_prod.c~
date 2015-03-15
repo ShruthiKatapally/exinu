@@ -1,6 +1,7 @@
 #include <prodcons.h>
 
 uint future_prod(future *fut) {
+  kprintf("reached future prod\n");
   int i, j=0;
   j = (int)fut;
   for (i=0; i<=1000; i++) {
@@ -11,7 +12,7 @@ uint future_prod(future *fut) {
     return OK;
   }
   else {
-    kprintf("future set failed\n");
+    printf("future set failed\n");
     return SYSERR;
   }
 }

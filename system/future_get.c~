@@ -5,12 +5,12 @@ syscall future_get(future *f, int *value) {
   if(f->state == FUTURE_EMPTY){
     switch(f->flag) {
       case FUTURE_EXCLUSIVE:
-        kprintf("future empty\n");
+        //kprintf("future empty\n");
         f->state = FUTURE_WAITING;
         future_wait(f);
         *value = f->value;
         f->state = FUTURE_EMPTY;
-        kprintf("future consumed\n");
+        //kprintf("future consumed\n");
         break;
 
       case FUTURE_SHARED:

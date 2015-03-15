@@ -1,5 +1,7 @@
 #ifndef _FUTURE_H_
 #define _FUTURE_H_
+
+#include <queue.h>
  
 /* define states */
 #define FUTURE_EMPTY	  0
@@ -22,7 +24,7 @@ typedef struct futent
 } future;
 
 /* Interface for system call */
-future* future_alloc(int future_flags);
+static future* future_alloc(int future_flags);
 syscall future_free(future*);
 syscall future_wait(future *fut);
 syscall future_signal(future *fut);

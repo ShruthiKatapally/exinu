@@ -35,7 +35,7 @@ syscall future_get(future *f, int *value) {
         break;
 
       default:
-        //kprintf("invalid future flag\n");
+        kprintf("invalid future flag\n");
         return SYSERR;
         break;
     }
@@ -43,7 +43,7 @@ syscall future_get(future *f, int *value) {
   else if(f->state == FUTURE_WAITING){
     switch(f->flag) {
       case FUTURE_EXCLUSIVE:
-        //kprintf("future waiting\n");
+        kprintf("future waiting\n");
         return SYSERR;
         break;
 
@@ -54,7 +54,7 @@ syscall future_get(future *f, int *value) {
         break;
 
       default:
-        //kprintf("invalid future flag\n");
+        kprintf("invalid future flag\n");
         return SYSERR;
         break;
     }
@@ -64,7 +64,7 @@ syscall future_get(future *f, int *value) {
       case FUTURE_EXCLUSIVE:
         *value = f->value;
         f->state = FUTURE_EMPTY;
-        //kprintf("future valid\n");
+        kprintf("future valid\n");
         break;
 
       case FUTURE_SHARED:
@@ -77,13 +77,13 @@ syscall future_get(future *f, int *value) {
         break;
 
       default:
-        //kprintf("invalid future flag\n");
+        kprintf("invalid future flag\n");
         return SYSERR;
         break;
     }
   }
   else {
-    //kprintf("invalid future state\n");
+    kprintf("invalid future state\n");
     return SYSERR;
   }
   return OK;
