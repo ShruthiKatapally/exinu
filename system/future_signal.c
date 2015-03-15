@@ -36,7 +36,43 @@ syscall future_signal(future *fut)
     //semptr = &semtab[sem];
     if (fut->state == FUTURE_VALID)
     {
-        ready(fut->tid, RESCHED_YES);
+	    switch(fut->flag) {
+	      case FUTURE_EXCLUSIVE:
+		ready(fut->tid, RESCHED_YES);
+		break;
+
+	      case FUTURE_SHARED:
+		break;
+
+	      case FUTURE_QUEUE:
+                ready(dequeue(fut->get_queue), RESCHED_YES);
+		break;
+
+	      default:
+		//kprintf("invalid future flag\n");
+		return SYSERR;
+		break;
+	    }   
+    }
+    else if (fut->state == FUTURE_EMPTY)
+    {
+	    switch(fut->flag) {
+	      case FUTURE_EXCLUSIVE:
+		break;
+
+	      case FUTURE_SHARED:
+		break;
+
+	      case FUTURE_QUEUE:
+                ready(dequeue(fut->set_queue), RESCHED_YES);
+		break;
+
+	      default:
+		//kprintf("invalid future flag\n");
+		return SYSERR;
+		break;
+	    }   
+	
     }
     restore(im);
     return OK;

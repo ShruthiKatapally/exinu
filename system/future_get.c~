@@ -1,32 +1,73 @@
 #include <kernel.h>
 #include <future.h>
-#include <semaphore.h>
 
 syscall future_get(future *f, int *value) {
-
-  /*semaphore sem;
-  sem = semcreate(1);*/
-  
   if(f->state == FUTURE_EMPTY){
-    //f->tid = gettid();
-    kprintf("future empty\n");
-    f->state = FUTURE_WAITING;
-    future_wait(f);
-    *value = f->value;
-    f->state = FUTURE_EMPTY;
-    //kprintf("future consumed\n");
-    return OK;
-  }
+    switch(f->flag) {
+      case FUTURE_EXCLUSIVE:
+        //f->tid = gettid();
+        //kprintf("future empty\n");
+        f->state = FUTURE_WAITING;
+        future_wait(f);
+        *value = f->value;
+        f->state = FUTURE_EMPTY;
+        //kprintf("future consumed\n");
+        break;
 
-  if(f->state == FUTURE_WAITING){
-    kprintf("future waiting\n");
+      case FUTURE_SHARED:
+        break;
+
+      case FUTURE_QUEUE:
+        break;
+
+      default:
+        //kprintf("invalid future flag\n");
+        return SYSERR;
+        break;
+    }
+  } 
+  else if(f->state == FUTURE_WAITING){
+    switch(f->flag) {
+      case FUTURE_EXCLUSIVE:
+        //kprintf("future waiting\n");
+        return SYSERR;
+        break;
+
+      case FUTURE_SHARED:
+        break;
+
+      case FUTURE_QUEUE:
+        break;
+
+      default:
+        //kprintf("invalid future flag\n");
+        return SYSERR;
+        break;
+    }
+  } 
+  else if(f->state == FUTURE_VALID){
+    switch(f->flag) {
+      case FUTURE_EXCLUSIVE:
+        *value = f->value;
+        f->state = FUTURE_EMPTY;
+        //kprintf("future valid\n");
+        break;
+
+      case FUTURE_SHARED:
+        break;
+
+      case FUTURE_QUEUE:
+        break;
+
+      default:
+        //kprintf("invalid future flag\n");
+        return SYSERR;
+        break;
+    }
+  }
+  else {
+    //kprintf("invalid future state\n");
     return SYSERR;
   }
-
-  if(f->state == FUTURE_VALID){
-    *value = f->value;
-    f->state = FUTURE_EMPTY;
-    kprintf("future valid\n");
-    return OK;
-  }
+  return OK;
 }
