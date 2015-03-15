@@ -47,7 +47,7 @@ shellcmd xsh_prodcons(int nargs, char *args[])
 
     if (nargs == 2)
     {
-        if(strcmp(args[1], "-f")==0)
+        if(strcmp(args[1],"-f")==0)
           future_flag = 1;
 	else
           count = atoi(args[1]);

@@ -42,6 +42,8 @@ syscall future_wait(future *fut)
 			break;
 
 		case FUTURE_SHARED:
+			thrptr->state = THRWAIT;
+			resched();
 			break;
 
 		case FUTURE_QUEUE:
