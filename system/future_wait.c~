@@ -42,6 +42,8 @@ syscall future_wait(future *fut)
 			break;
 
 		case FUTURE_SHARED:
+			thrptr->state = THRWAIT;
+			resched();
 			break;
 
 		case FUTURE_QUEUE:
@@ -50,7 +52,7 @@ syscall future_wait(future *fut)
 			break;
 
 		default:
-			kprintf("invalid future flag\n");
+			//kprintf("invalid future flag\n");
 			return SYSERR;
 			break;
 	}

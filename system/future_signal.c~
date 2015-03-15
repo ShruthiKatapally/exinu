@@ -5,6 +5,7 @@
 
 #include <thread.h>
 #include <future.h>
+#include <queue.h>
 
 /**
  * @ingroup future
@@ -15,13 +16,12 @@
  * should not be called from non-reentrant interrupt handlers unless ::resdefer
  * is set to a positive value at the start of the interrupt handler.
  *
- * @param sem
- *      Semaphore to signal.
+ * @param fut
+ *      future to signal.
  *
  * @return
  *      ::OK on success, ::SYSERR on failure.  This function can only fail if @p
- *      sem did not specify a valid semaphore.
- */
+  */
 syscall future_signal(future *fut)
 {
     irqmask im;
@@ -36,6 +36,10 @@ syscall future_signal(future *fut)
 		break;
 
 	      case FUTURE_SHARED:
+		while (isbadqid(fut->get_queue) || isempty(fut->get_queue) )
+		{
+		ready(dequeue(fut->get_queue), RESCHED_YES);
+		}
 		break;
 
 	      case FUTURE_QUEUE:
@@ -43,7 +47,7 @@ syscall future_signal(future *fut)
 		break;
 
 	      default:
-		kprintf("invalid future flag\n");
+		//kprintf("invalid future flag\n");
 		return SYSERR;
 		break;
 	    }   
@@ -62,7 +66,7 @@ syscall future_signal(future *fut)
 		break;
 
 	      default:
-		kprintf("invalid future flag\n");
+		//kprintf("invalid future flag\n");
 		return SYSERR;
 		break;
 	    }   

@@ -1,9 +1,12 @@
 #include <kernel.h>
 #include <future.h>
 
-syscall future_set(future *f, int value) {
-  if(f->state == FUTURE_EMPTY || f->state == FUTURE_WAITING){
-    switch(f->flag) {
+syscall future_set(future *f, int value) 
+{
+  if(f->state == FUTURE_EMPTY || f->state == FUTURE_WAITING)
+{
+    switch(f->flag)
+ {
       case FUTURE_EXCLUSIVE:
         f->value = value;
         f->state = FUTURE_VALID;
@@ -12,6 +15,10 @@ syscall future_set(future *f, int value) {
         break;
 
       case FUTURE_SHARED:
+	f->value = value;
+        f->state = FUTURE_VALID;
+        kprintf("future produced in shared mode \n");
+        future_signal(f);
         break;
 
       case FUTURE_QUEUE:

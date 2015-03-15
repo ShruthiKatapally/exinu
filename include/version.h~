@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-#define VERSION "(Embedded Xinu) (arm-rpi) #0 (jmadagun@silo.soic.indiana.edu) Tue Feb 3 02:04:24 EST 2015"
-=======
-#define VERSION "(Embedded Xinu) (arm-rpi) #28 (shrukata@silo.soic.indiana.edu) Fri Feb 13 19:08:24 EST 2015"
->>>>>>> 8180fbb6d2d5250ea963510a8e3a21421e39dcc9
+#define VERSION "(Embedded Xinu) (arm-rpi) #0 (jmadagun@silo.soic.indiana.edu) Sun Mar 15 05:53:49 EDT 2015"

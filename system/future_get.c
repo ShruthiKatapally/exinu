@@ -1,9 +1,12 @@
 #include <kernel.h>
 #include <future.h>
 
-syscall future_get(future *f, int *value) {
-  if(f->state == FUTURE_EMPTY){
-    switch(f->flag) {
+syscall future_get(future *f, int *value) 
+{
+  if(f->state == FUTURE_EMPTY)
+{
+    switch(f->flag) 
+{
       case FUTURE_EXCLUSIVE:
         //kprintf("future empty\n");
         f->state = FUTURE_WAITING;
@@ -14,7 +17,11 @@ syscall future_get(future *f, int *value) {
         break;
 
       case FUTURE_SHARED:
-        break;
+	 f->state = FUTURE_WAITING;
+	  enqueue(gettid(), f->get_queue);
+          future_wait(f);
+	  future_get(f,value);
+	 break;
 
       case FUTURE_QUEUE:
         if(isempty(f->set_queue)) {
@@ -48,6 +55,10 @@ syscall future_get(future *f, int *value) {
         break;
 
       case FUTURE_SHARED:
+	  enqueue(gettid(), f->get_queue);
+          future_wait(f);
+	  future_get(f,value);
+	//kprintf("future waiting in shared mode \n");
         break;
 
       case FUTURE_QUEUE:
@@ -68,6 +79,9 @@ syscall future_get(future *f, int *value) {
         break;
 
       case FUTURE_SHARED:
+	*value = f->value;
+        f->state = FUTURE_EMPTY;
+	//kprintf("future consumed in shared mode \n");
         break;
 
       case FUTURE_QUEUE:

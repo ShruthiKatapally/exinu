@@ -23,8 +23,10 @@ future* future_alloc(int future_flag){
     fut->state = FUTURE_EMPTY;
     fut->flag = future_flag;
     fut->tid = -1;
-    fut->set_queue = queinit();
-    fut->get_queue = queinit();
+    if(future_flag == FUTURE_SHARED || future_flag == FUTURE_QUEUE)
+	fut->get_queue = queinit();
+    if(future_flag == FUTURE_QUEUE)
+	fut->set_queue = queinit();
     return fut;
   }  
 }
