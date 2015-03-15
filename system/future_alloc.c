@@ -2,9 +2,12 @@
 #include <future.h>
 
 future* future_alloc(int future_flag){
-  if(future_flag!=FUTURE_EXCLUSIVE){
-    printf("future_alloc: invalid flag\n");
-    return NULL;
+  if(future_flag!=FUTURE_EXCLUSIVE 
+	&& future_flag!=FUTURE_SHARED 
+	&& future_flag!=FUTURE_QUEUE )
+  {
+	printf("future_alloc: invalid flag\n");
+        return NULL;
   }
 
   future *fut;
@@ -18,8 +21,12 @@ future* future_alloc(int future_flag){
   {
     fut->value = 0;
     fut->state = FUTURE_EMPTY;
-    fut->flag = FUTURE_EXCLUSIVE;
+    fut->flag = future_flag;
     fut->tid = -1;
+    if(future_flag == FUTURE_SHARED || future_flag == FUTURE_QUEUE)
+	fut->get_queue = queinit();
+    if(future_flag == FUTURE_QUEUE)
+	fut->set_queue = queinit();
     return fut;
   }  
 }

@@ -7,7 +7,7 @@ syscall future_set(future *f, int value) {
       case FUTURE_EXCLUSIVE:
         f->value = value;
         f->state = FUTURE_VALID;
-        //kprintf("future produced\n");
+        kprintf("future produced\n");
         future_signal(f);
         break;
 
@@ -17,29 +17,36 @@ syscall future_set(future *f, int value) {
       case FUTURE_QUEUE:
         if(isempty(f->get_queue)) {
           //if the get queue is empty, wait on this future
+	  kprintf("reached queue empty in set. q# %d\n", f->get_queue);
+	  enqueue(gettid(), f->set_queue);
           future_wait(f);
+	  f->value = value;
+          f->state = FUTURE_VALID;
+          kprintf("future produced\n");
+          future_signal(f);
         }
         else {
           //else set the value and signal future
+	  kprintf("reached queue not empty in set. q# %d\n",f->get_queue);
           f->value = value;
           f->state = FUTURE_VALID;
-          //kprintf("future produced\n");
+          kprintf("future produced\n");
           future_signal(f);  
         }
         break;
 
       default:
-        //kprintf("invalid future flag\n");
+        kprintf("invalid future flag\n");
         return SYSERR;
         break;
     }
   } 
   else if(f->state == FUTURE_VALID){
-    //kprintf("future is not empty\n");
+    kprintf("future is not empty\n");
     return SYSERR;
   }
   else {
-    //kprintf("invalid future state\n");
+    kprintf("invalid future state\n");
     return SYSERR;
   }
   return OK;
