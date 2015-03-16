@@ -52,7 +52,6 @@ syscall future_wait(future *fut)
 			break;
 
 		default:
-			//kprintf("invalid future flag\n");
 			return SYSERR;
 			break;
 	}

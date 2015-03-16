@@ -36,7 +36,7 @@ syscall future_signal(future *fut)
 		break;
 
 	      case FUTURE_SHARED:
-		while (!isempty(fut->get_queue) )
+		while (!isempty(fut->get_queue))
 		{
 		ready(dequeue(fut->get_queue), RESCHED_YES);
 		}
@@ -47,7 +47,6 @@ syscall future_signal(future *fut)
 		break;
 
 	      default:
-		//kprintf("invalid future flag\n");
 		return SYSERR;
 		break;
 	    }   
@@ -66,7 +65,6 @@ syscall future_signal(future *fut)
 		break;
 
 	      default:
-		//kprintf("invalid future flag\n");
 		return SYSERR;
 		break;
 	    }   

@@ -9,12 +9,13 @@ uint future_cons(future *fut) {
     return -1;
   }
   kprintf("consumed %d\n", i);
+
   if(fut->flag == FUTURE_EXCLUSIVE){
     if(future_free(fut)==SYSERR){
       printf("future_free failed\n");
     } 
   }
-  if(fut->flag == FUTURE_SHARED) {
+/*  if(fut->flag == FUTURE_SHARED) {
     if (isempty(fut->get_queue)) { 
       if(future_free(fut)==SYSERR) {
         printf("future_free failed\n");
@@ -28,7 +29,8 @@ uint future_cons(future *fut) {
         printf("future_free failed\n");
       } 
     }
-  } 
+  }
+*/ 
   return OK;
 }
 

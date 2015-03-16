@@ -36,10 +36,12 @@ syscall future_signal(future *fut)
 		break;
 
 	      case FUTURE_SHARED:
-		while (isbadqid(fut->get_queue) || isempty(fut->get_queue) )
+		//kprintf("future_shared -future_valid #signal before dequeue \n");
+		while (!isempty(fut->get_queue))
 		{
 		ready(dequeue(fut->get_queue), RESCHED_YES);
 		}
+		//kprintf("future_shared -future_valid #signal after dequeue \n");
 		break;
 
 	      case FUTURE_QUEUE:

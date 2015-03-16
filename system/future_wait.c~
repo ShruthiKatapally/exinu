@@ -28,8 +28,6 @@ syscall future_wait(future *fut)
     register struct thrent *thrptr;
     irqmask im;
 
-    kprintf("reached\n");
-
     im = disable();
 
     thrptr = &thrtab[thrcurrent];
@@ -44,6 +42,7 @@ syscall future_wait(future *fut)
 			break;
 
 		case FUTURE_SHARED:
+			//kprintf("future_shared  #wait \n");
 			thrptr->state = THRWAIT;
 			resched();
 			break;

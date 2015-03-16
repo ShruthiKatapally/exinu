@@ -10,14 +10,14 @@ syscall future_set(future *f, int value)
       case FUTURE_EXCLUSIVE:
         f->value = value;
         f->state = FUTURE_VALID;
-       //kprintf("future produced\n");
+        //kprintf("future produced\n");
         future_signal(f);
         break;
 
       case FUTURE_SHARED:
 	f->value = value;
         f->state = FUTURE_VALID;
-       //kprintf("future produced in shared mode \n");
+        //kprintf("#set= produced in shared mode \n");
         future_signal(f);
         break;
 
@@ -57,10 +57,12 @@ syscall future_set(future *f, int value)
         break;
 
       case FUTURE_SHARED:
+        //kprintf("future is not empty\n");
+        return SYSERR;
         break;
 
       case FUTURE_QUEUE:
-        kprintf("future is not empty, tid = %d \n",gettid());
+        //kprintf("future is not empty, tid = %d \n",gettid());
         return SYSERR;
         //future is yet to be consumed, wait on this future
 	/*enqueue(gettid(), f->set_queue);
