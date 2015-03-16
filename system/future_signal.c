@@ -36,7 +36,7 @@ syscall future_signal(future *fut)
 		break;
 
 	      case FUTURE_SHARED:
-		while (isbadqid(fut->get_queue) || isempty(fut->get_queue) )
+		while (!isempty(fut->get_queue) )
 		{
 		ready(dequeue(fut->get_queue), RESCHED_YES);
 		}

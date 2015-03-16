@@ -24,7 +24,7 @@ typedef struct futent
 } future;
 
 /* Interface for system call */
-static future* future_alloc(int future_flags);
+future* future_alloc(int future_flags);
 syscall future_free(future*);
 syscall future_wait(future *fut);
 syscall future_signal(future *fut);
