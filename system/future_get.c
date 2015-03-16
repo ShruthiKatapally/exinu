@@ -3,6 +3,7 @@
 
 syscall future_get(future *f, int *value) 
 {
+ 
   if(f->state == FUTURE_EMPTY)
 {
     switch(f->flag) 
@@ -17,10 +18,11 @@ syscall future_get(future *f, int *value)
         break;
 
       case FUTURE_SHARED:
-	 f->state = FUTURE_WAITING;
+	  f->state = FUTURE_WAITING;
+	  //kprintf("future_empty #get in shared mode \n");
 	  enqueue(gettid(), f->get_queue);
           future_wait(f);
-	  future_get(f,value);
+	 // future_get(f,value);
 	 break;
 
       case FUTURE_QUEUE:
@@ -55,10 +57,11 @@ syscall future_get(future *f, int *value)
         break;
 
       case FUTURE_SHARED:
+	  // kprintf("future_waiting #get in shared mode\n");
 	  enqueue(gettid(), f->get_queue);
           future_wait(f);
-	  future_get(f,value);
-	//kprintf("future waiting in shared mode \n");
+	 // future_get(f,value);
+	 
         break;
 
       case FUTURE_QUEUE:
@@ -81,7 +84,7 @@ syscall future_get(future *f, int *value)
       case FUTURE_SHARED:
 	*value = f->value;
         f->state = FUTURE_EMPTY;
-	//kprintf("future consumed in shared mode \n");
+	kprintf("future_valid #get = future consumed in shared mode \n");
         break;
 
       case FUTURE_QUEUE:

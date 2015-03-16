@@ -10,14 +10,14 @@ syscall future_set(future *f, int value)
       case FUTURE_EXCLUSIVE:
         f->value = value;
         f->state = FUTURE_VALID;
-        kprintf("future produced\n");
+        //kprintf("future produced\n");
         future_signal(f);
         break;
 
       case FUTURE_SHARED:
 	f->value = value;
         f->state = FUTURE_VALID;
-        kprintf("future produced in shared mode \n");
+        //kprintf("#set= produced in shared mode \n");
         future_signal(f);
         break;
 

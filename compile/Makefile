@@ -17,7 +17,7 @@
 PLATFORM := arm-rpi
 
 # These need to be changed
-NODE=3
+NODE=24
 GPORT=55${NODE}
 USERNAME=shrukata
 

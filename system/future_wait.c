@@ -42,6 +42,7 @@ syscall future_wait(future *fut)
 			break;
 
 		case FUTURE_SHARED:
+			//kprintf("future_shared  #wait \n");
 			thrptr->state = THRWAIT;
 			resched();
 			break;

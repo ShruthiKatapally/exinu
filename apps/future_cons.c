@@ -7,7 +7,8 @@ uint future_cons(future *fut) {
     printf("future_get failed\n");
     return -1;
   }
-  printf("consumed %d\n", i);
+  kprintf("consumed %d\n", i);
+
   if(fut->flag == FUTURE_EXCLUSIVE)
     if(future_free(fut)==SYSERR)
       printf("future_free failed\n");
