@@ -1,7 +1,7 @@
 #include <prodcons.h>
 
 uint future_prod(future *fut) {
-  kprintf("reached future prod\n");
+  kprintf("tid = %d\n",gettid());
   int i, j=0;
   j = (int)fut;
   for (i=0; i<=1000; i++) {

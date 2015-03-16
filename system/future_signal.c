@@ -36,9 +36,13 @@ syscall future_signal(future *fut)
 		break;
 
 	      case FUTURE_SHARED:
+<<<<<<< HEAD
 		//kprintf("future_shared -future_valid #signal before dequeue \n");
 				
 		while (!isempty(fut->get_queue))
+=======
+		while (!isempty(fut->get_queue) )
+>>>>>>> 09fc7425b8f941de83db609c5a7ebc2ab3166d50
 		{
 		ready(dequeue(fut->get_queue), RESCHED_YES);
 		}

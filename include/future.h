@@ -2,6 +2,7 @@
 #define _FUTURE_H_
 
 #include <queue.h>
+#include <kernel.h>
  
 /* define states */
 #define FUTURE_EMPTY	  0

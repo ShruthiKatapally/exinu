@@ -10,14 +10,22 @@ syscall future_set(future *f, int value)
       case FUTURE_EXCLUSIVE:
         f->value = value;
         f->state = FUTURE_VALID;
+<<<<<<< HEAD
         //kprintf("future produced\n");
+=======
+       //kprintf("future produced\n");
+>>>>>>> 09fc7425b8f941de83db609c5a7ebc2ab3166d50
         future_signal(f);
         break;
 
       case FUTURE_SHARED:
 	f->value = value;
         f->state = FUTURE_VALID;
+<<<<<<< HEAD
         //kprintf("#set= produced in shared mode \n");
+=======
+       //kprintf("future produced in shared mode \n");
+>>>>>>> 09fc7425b8f941de83db609c5a7ebc2ab3166d50
         future_signal(f);
         break;
 
@@ -43,17 +51,44 @@ syscall future_set(future *f, int value)
         break;
 
       default:
-        kprintf("invalid future flag\n");
+       //kprintf("invalid future flag\n");
         return SYSERR;
         break;
     }
   }
   else if(f->state == FUTURE_VALID){
-    kprintf("future is not empty\n");
-    return SYSERR;
+    switch(f->flag)
+ {
+      case FUTURE_EXCLUSIVE:
+        //kprintf("future is not empty\n");
+        return SYSERR;
+        break;
+
+      case FUTURE_SHARED:
+        //kprintf("future is not empty\n");
+        return SYSERR;
+        break;
+
+      case FUTURE_QUEUE:
+        //kprintf("future is not empty, tid = %d \n",gettid());
+        return SYSERR;
+        //future is yet to be consumed, wait on this future
+	/*enqueue(gettid(), f->set_queue);
+        future_wait(f);
+	f->value = value;
+        f->state = FUTURE_VALID;
+        //kprintf("future produced\n");
+        future_signal(f);*/
+        break;
+
+      default:
+       //kprintf("invalid future flag\n");
+        return SYSERR;
+        break;
+    }
   }
   else {
-    kprintf("invalid future state\n");
+   //kprintf("invalid future state\n");
     return SYSERR;
   }
   return OK;

@@ -64,8 +64,13 @@ shellcmd xsh_prodcons(int nargs, char *args[])
 	  resume( create(future_cons, 1024, 20, "fcons1", 1, f_exclusive) );
 	  resume( create(future_prod, 1024, 20, "fprod1", 1, f_exclusive) );
 
+<<<<<<< HEAD
 	/*// Test FUTURE_SHARED
 	  resume( create(future_cons, 1024, 20, "fcons2", 1, f_shared) );
+=======
+	// Test FUTURE_SHARED
+	  /*resume( create(future_cons, 1024, 20, "fcons2", 1, f_shared) );
+>>>>>>> 09fc7425b8f941de83db609c5a7ebc2ab3166d50
 	  resume( create(future_cons, 1024, 20, "fcons3", 1, f_shared) );
 	  resume( create(future_cons, 1024, 20, "fcons4", 1, f_shared) ); 
 	  resume( create(future_cons, 1024, 20, "fcons5", 1, f_shared) );
