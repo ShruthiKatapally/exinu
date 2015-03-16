@@ -1,0 +1,23 @@
+This text file is the report for Assignment-5.
+
+The code uses the skeleton code provided in the assignment. 
+List of files:
+future.h
+xsh_prodcons.c
+future_alloc.c
+future_cons.c
+future_prod.c
+future_get.c
+future_wait.c
+future_set.c
+future_signal.c
+future_free.c
+
+We used the existing queue data structure for processes from exinu.
+
+The task division for the assignment was as follows:
+Shruthi:
+Code and test functionality for flag "FUTURE_SHARED"
+
+Jagadeesh:
+Code and test functionality for flag "FUTURE_QUEUE"
