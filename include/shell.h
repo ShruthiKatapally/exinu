@@ -83,6 +83,7 @@ extern ulong ncommand;               /**< number of commands in table   */
 /* Function prototypes */
 shellcmd xsh_hello(int, char *[]);
 shellcmd xsh_prodcons(int, char *[]);
+shellcmd xsh_fstest(int, char *[]);
 thread shell(int, int, int);
 short lexan(char *, ushort, char *, char *[]);
 shellcmd xsh_arp(int, char *[]);

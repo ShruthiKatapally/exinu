@@ -41,6 +41,9 @@ C_FILES += tar.c
 # Files for futures
 C_FILES += future_alloc.c future_free.c future_wait.c future_signal.c future_set.c future_get.c
 
+# Files for file system
+C_FILES += fs.c bs.c
+
 # Add the files to the compile source path
 DIR = ${TOPDIR}/${COMP}
 COMP_SRC += ${C_FILES:%=${DIR}/%}

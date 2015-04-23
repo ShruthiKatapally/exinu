@@ -52,6 +52,9 @@ C_FILES += xsh_hello.c
 # prodcons Commands
 C_FILES += xsh_prodcons.c
 
+# fstest Commands
+C_FILES += xsh_fstest.c
+
 # Test commands
 C_FILES += xsh_test.c xsh_testsuite.c
 
