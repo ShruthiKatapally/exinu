@@ -74,6 +74,7 @@ void testbitmask(void);
     }
     
     rval = fwrite(fd,buf1,SIZE);
+    // handling EOF is not done
     if(rval == 0 || rval != SIZE )
     {
         printf("\n\r File write failed");
@@ -104,11 +105,11 @@ void testbitmask(void);
     {
         printf("\n\rReturn val for fclose : %d",rval);
     }
-
+*/
 clean_up:
     memfree(buf1,SIZE);
-    memfree(buf2,SIZE);
-    */
+    //memfree(buf2,SIZE);
+    
 #else
     printf("No filesystem support\n");
 #endif

@@ -48,7 +48,6 @@ int fcreate(char *filename, int mode) {
 	strncpy(dirent_ptr->name, filename, FILENAMELEN-1);
 	dirent_ptr->name[FILENAMELEN-1]='\0';
 	dirent_ptr->inode_num=-1;
-	// allocate inode
 
 	/* search for empty slot in open file table */
 	for(i=0; i<NUM_FD; i++) {
@@ -59,7 +58,11 @@ int fcreate(char *filename, int mode) {
 		if(next_open_fd >= NUM_FD)
 			next_open_fd = 0;
 	}
-	
+	if(oft[next_open_fd].state != FSTATE_CLOSED) {
+		printf("max open files reached\n");
+		return SYSERR;			
+	}
+
 	/* Make an entry in open file table. */
 	ft_ptr = &oft[next_open_fd];
 	ft_ptr->state = FSTATE_OPEN;
@@ -77,27 +80,21 @@ int fcreate(char *filename, int mode) {
 			next_free_inode = 0;
 	}
 
+	if(!(ft_ptr->in.id < 0 || ft_ptr->in.id >= fsd.ninodes)) {
+		printf("max files limit reached\n");
+		return SYSERR;			
+	}
+
 	ft_ptr->in.id = next_free_inode;
 	ft_ptr->in.type = INODE_TYPE_FILE;
 	ft_ptr->in.nlink = 0;
 	ft_ptr->in.device = 0;
 	ft_ptr->in.size = 0;
 
-	// allocate data blocks on demand
+	/* write inode to disk */
+	put_inode_by_num(dev0, ft_ptr->in.id, &ft_ptr->in);
 
-/* search for empty data blocks using bitmask and allocate them to current inode */
-	for(j=0; j<INODEBLOCKS; j++) {
-		for(i=FIRST_DATA_BLOCK; i<fsd.nblocks; i++) {
-			m = getmaskbit(next_free_data_block);
-			if(m == 0) {
-				break;
-			}
-			next_free_inode++;
-			if(next_free_inode >= MDEV_NUM_BLOCKS)
-				next_free_inode = FIRST_INODE_BLOCK;
-		}
-		ft_ptr->in.blocks[j] = next_free_data_block;
-	}
+	// allocate data blocks on demand
 
 	printf("\nFile %s created and opened successfully.\n",dirent_ptr->name);
 	return next_open_fd;
@@ -105,9 +102,83 @@ int fcreate(char *filename, int mode) {
 }
 
 int fwrite(int fd, void *buf, int nbytes) {
+	int block, offset, len;
+	int i, m;
+	int num_bytes_written = nbytes;
+	int bytes_transferred = 0;
+
 	// verify arguments
-	// extract each block from buffer and write to disk
-	// update the fileptr
+	/* get the entry in open file table. */
+	ft_ptr = &oft[fd];
+	
+	/* check if the file is open */
+	if(ft_ptr->state != FSTATE_OPEN) {
+		printf("file is not open\n");
+		return SYSERR;	
+	}
+
+	/* check if writing given data to file will exceed the max file length */
+	if ( (nbytes + ft_ptr->fileptr) >= (MDEV_BLOCK_SIZE * INODEDIRECTBLOCKS) ) {
+		printf("max file length exceeded\n");
+		return SYSERR;
+	}
+
+	// fill current block
+	// get current block number and offset
+	block = ft_ptr->in.blocks[ft_ptr->fileptr/MDEV_BLOCK_SIZE];
+	offset = ft_ptr->fileptr % MDEV_BLOCK_SIZE;
+	len = nbytes < (MDEV_BLOCK_SIZE - offset) ? nbytes : (MDEV_BLOCK_SIZE - offset);
+
+	printf("wrtining: %s\n",buf);
+
+	if (bwrite(dev0, block, offset, buf, len)!=OK) {
+		printf("block write failed\n");
+		return SYSERR;
+	}
+	ft_ptr->fileptr += len;
+	nbytes -= len;
+	bytes_transferred += len;
+
+	// extract each block from buffer and write to disk	
+	while(nbytes > 0) {
+		// allocate a new data block
+		/* search for empty data blocks using bitmask and allocate them to current inode */
+		for(i=FIRST_DATA_BLOCK; i<fsd.nblocks; i++) {
+			m = getmaskbit(next_free_data_block);
+			if(m == 0) {
+				break;
+			}
+			next_free_data_block++;
+			if(next_free_data_block >= MDEV_NUM_BLOCKS)
+				next_free_data_block = FIRST_DATA_BLOCK;
+		}
+		if(m != 0) {
+			printf("disk full\n");
+			return SYSERR;			
+		}
+		// mark this block as used using bit mask
+		setmaskbit(next_free_data_block);
+		/* update bitmask block */
+		setmaskbit(BM_BLK);
+		bwrite(dev0, BM_BLK, 0, fsd.freemask, fsd.freemaskbytes);
+
+		ft_ptr->in.blocks[ft_ptr->fileptr/MDEV_BLOCK_SIZE] = next_free_data_block;
+
+		// fill the allocated block
+		block = ft_ptr->in.blocks[ft_ptr->fileptr/MDEV_BLOCK_SIZE];
+		offset = 0;
+		len = nbytes < MDEV_BLOCK_SIZE ? nbytes : MDEV_BLOCK_SIZE;
+		if (bwrite(dev0, block, offset, buf+bytes_transferred, len)!=OK) {
+			printf("block write failed\n");
+			return SYSERR;
+		}
+		ft_ptr->fileptr += len;
+		nbytes -= len;
+	}
+	
+	/* write inode to disk */
+	put_inode_by_num(dev0, ft_ptr->in.id, &ft_ptr->in);
+	return num_bytes_written;	
 }
 
 int fread(int fd, void *buf, int nbytes) {

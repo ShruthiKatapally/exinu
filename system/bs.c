@@ -44,8 +44,7 @@ int mkbsdev(int dev, int blocksize, int numblocks) {
 
 }
 
-int 
-bread(int dev, int block, int offset, void *buf, int len) {
+int bread(int dev, int block, int offset, void *buf, int len) {
   char *bbase;
 
   if (dev != 0) {
@@ -66,8 +65,7 @@ bread(int dev, int block, int offset, void *buf, int len) {
 }
 
 
-int 
-bwrite(int dev, int block, int offset, void * buf, int len) {
+int bwrite(int dev, int block, int offset, void * buf, int len) {
   char *bbase;
 
   if (dev != 0) {
