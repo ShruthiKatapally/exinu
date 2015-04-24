@@ -59,30 +59,30 @@ void testbitmask(void);
     mkfs(0,DEFAULT_NUM_INODES); /* bsdev 0*/
     //testbitmask();
 
-    //buf1 = memget(SIZE*sizeof(char));
+    buf1 = memget(SIZE*sizeof(char));
     //buf2 = memget(SIZE*sizeof(char));
     
     // Create test file
     fd = fcreate("Test_File", O_CREAT);
 	
-	printf("\nCommand added successfully.\n");
-	return OK;
-           
     // Fill buffer with random stuff
-    /* for(i=0; i<SIZE; i++)
+    for(i=0; i<SIZE; i++)
     {
         j = i%(127-33);
         j = j+33;
         buf1[i] = (char) j;
     }
     
-    /* rval = fwrite(fd,buf1,SIZE);
+    rval = fwrite(fd,buf1,SIZE);
     if(rval == 0 || rval != SIZE )
     {
         printf("\n\r File write failed");
         goto clean_up;
-    } */
+    }
 
+	printf("\nCommand executed successfully.\n");
+	return OK;
+           
     // Now my file offset is pointing at EOF file, i need to bring it back to start of file
     // Assuming here implementation of fseek is like "original_offset = original_offset + input_offset_from_fseek"
     //fseek(fd,-rval); 

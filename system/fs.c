@@ -23,21 +23,23 @@ char block_cache[512];
 
 #define NUM_FD 16
 struct filetable oft[NUM_FD];
-int next_open_fd = 0;
+static int next_open_fd = 0;
 struct filetable * ft_ptr;
 
 #define INODES_PER_BLOCK (fsd.blocksz / sizeof(struct inode))
 #define NUM_INODE_BLOCKS (( (fsd.ninodes % INODES_PER_BLOCK) == 0) ? fsd.ninodes / INODES_PER_BLOCK : (fsd.ninodes / INODES_PER_BLOCK) + 1)
 #define FIRST_INODE_BLOCK 2
+#define FIRST_DATA_BLOCK (2 + NUM_INODE_BLOCKS)
 
 struct inode blank_inode;
-int next_free_inode = FIRST_INODE_BLOCK;
+static int next_free_inode = 0;
+static int next_free_data_block;
 
 int fileblock_to_diskblock(int dev, int fd, int fileblock);
 
 /* Your code goes here! */
 int fcreate(char *filename, int mode) {
-	int i;	
+	int i, j, m;	
 	struct dirent * dirent_ptr;	
 
 	/* Allocate next dir entry and initialize it to empty file */
@@ -46,6 +48,7 @@ int fcreate(char *filename, int mode) {
 	strncpy(dirent_ptr->name, filename, FILENAMELEN-1);
 	dirent_ptr->name[FILENAMELEN-1]='\0';
 	dirent_ptr->inode_num=-1;
+	// allocate inode
 
 	/* search for empty slot in open file table */
 	for(i=0; i<NUM_FD; i++) {
@@ -64,27 +67,53 @@ int fcreate(char *filename, int mode) {
 	ft_ptr->de = dirent_ptr;
 
 	/* search for an empty inode */
-	
-	/* search for empty slot in bitmask */
 	for(i=0; i<fsd.ninodes; i++) {
-		if(getmaskbit(next_free_inode) == 0) {
+		get_inode_by_num(0, next_free_inode, &ft_ptr->in);
+		if(ft_ptr->in.id < 0 || ft_ptr->in.id >= fsd.ninodes) {
 			break;
 		}
 		next_free_inode++;
-		if(next_free_inode >= MDEV_NUM_BLOCKS)
-			next_free_inode = FIRST_INODE_BLOCK;
+		if(next_free_inode >= fsd.ninodes)
+			next_free_inode = 0;
 	}
-	
+
 	ft_ptr->in.id = next_free_inode;
 	ft_ptr->in.type = INODE_TYPE_FILE;
 	ft_ptr->in.nlink = 0;
 	ft_ptr->in.device = 0;
 	ft_ptr->in.size = 0;
-	ft_ptr->in.blocks[0] = -1;
 
-	printf("\nFile %s created successfully.\n",dirent_ptr->name);
-	return OK;
+	// allocate data blocks on demand
 
+/* search for empty data blocks using bitmask and allocate them to current inode */
+	for(j=0; j<INODEBLOCKS; j++) {
+		for(i=FIRST_DATA_BLOCK; i<fsd.nblocks; i++) {
+			m = getmaskbit(next_free_data_block);
+			if(m == 0) {
+				break;
+			}
+			next_free_inode++;
+			if(next_free_inode >= MDEV_NUM_BLOCKS)
+				next_free_inode = FIRST_INODE_BLOCK;
+		}
+		ft_ptr->in.blocks[j] = next_free_data_block;
+	}
+
+	printf("\nFile %s created and opened successfully.\n",dirent_ptr->name);
+	return next_open_fd;
+
+}
+
+int fwrite(int fd, void *buf, int nbytes) {
+	// verify arguments
+	// extract each block from buffer and write to disk
+	// update the fileptr
+}
+
+int fread(int fd, void *buf, int nbytes) {
+	// verify arguments
+	// extract each block from disk and copy to buffer
+	// update the fileptr
 }
 
 int mkfs(int dev, int num_inodes) {
@@ -147,6 +176,8 @@ int mkfs(int dev, int num_inodes) {
     for(j=0; j<INODEBLOCKS; j++)
       oft[i].in.blocks[j] = -1;
   }
+
+  next_free_data_block = FIRST_DATA_BLOCK;
 
   return 1;
 }
