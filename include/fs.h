@@ -42,6 +42,7 @@ struct inode {
 struct filetable {
   int state;
   int fileptr;
+  int mode;
   struct dirent *de;
   struct inode in;
 };
@@ -68,12 +69,11 @@ struct fsystem {
 
 /* file and directory functions */
 int fcreate(char *filename, int mode);
+int fopen(char *filename, int flags);
 int fwrite(int fd, void *buf, int nbytes);
 int fclose(int fd);
 int fseek(int fd, int offset);
 int fread(int fd, void *buf, int nbytes);
-/* int fopen(char *filename, int flags);
-*/
 
 /* filesystem functions */
 int mkfs(int dev, int num_inodes);

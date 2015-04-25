@@ -39,13 +39,30 @@ int fileblock_to_diskblock(int dev, int fd, int fileblock);
 
 /* Your code goes here! */
 int fcreate(char *filename, int mode) {
-	int i, m;	
-	int block, offset, len;
+	int i;	
 	struct dirent * dirent_ptr;	
 
 	/* check filename length */
+	if (strlen(filename)>=FILENAMELEN) {
+		printf("file name exceeds max allowed length: %d\n",FILENAMELEN);
+		return SYSERR;			
+	}
 	/* check mode */
+	if (mode != O_CREAT) {
+		printf("invalid file mode\n");
+		return SYSERR;
+	}
+
 	/* check if file already exists */
+	for (i = 0; i < DIRECTORY_SIZE; i++) {
+		dirent_ptr = &fsd.root_dir.entry[i];
+		if (strncmp(dirent_ptr->name, filename, FILENAMELEN) == 0)
+			break;
+	}
+	if (i != DIRECTORY_SIZE) {
+		printf("file %s already exists\n", filename);
+		return SYSERR;
+	}
 
 	/* Allocate next dir entry and initialize it to empty file */
 	// dirent_ptr = &fsd_ptr->root_dir.entry[fsd_ptr->root_dir.numentries++];
@@ -71,6 +88,7 @@ int fcreate(char *filename, int mode) {
 	/* Make an entry in open file table. */
 	ft_ptr = &oft[next_open_fd];
 	ft_ptr->state = FSTATE_OPEN;
+	ft_ptr->mode = O_RDWR;	
 	ft_ptr->fileptr = 0;
 	ft_ptr->de = dirent_ptr;
 
@@ -96,6 +114,8 @@ int fcreate(char *filename, int mode) {
 	ft_ptr->in.device = 0;
 	ft_ptr->in.size = 0;
 
+	dirent_ptr->inode_num = next_free_inode;
+
 	fsd.inodes_used++;
 	/* write inode to disk */	
 	put_inode_by_num(dev0, ft_ptr->in.id, &ft_ptr->in);
@@ -103,6 +123,52 @@ int fcreate(char *filename, int mode) {
 	printf("\nFile %s created and opened successfully.\n",dirent_ptr->name);
 	return next_open_fd;
 
+}
+
+int fopen(char *filename, int flags) {
+	int i;	
+	struct dirent * dirent_ptr;	
+
+	/* check filename length */
+	/* check mode or flags */
+
+	/* check if file already exists */
+	for (i = 0; i < DIRECTORY_SIZE; i++) {
+		dirent_ptr = &fsd.root_dir.entry[i];
+		if (strncmp(dirent_ptr->name, filename, FILENAMELEN) == 0)
+			break;
+	}
+	if (i == DIRECTORY_SIZE) {
+		printf("file %s does not exist\n", filename);
+		return SYSERR;
+	}
+
+	/* search for empty slot in open file table */
+	for(i=0; i<NUM_FD; i++) {
+		if(oft[next_open_fd].state == FSTATE_CLOSED) {
+			break;
+		}
+		next_open_fd++;
+		if(next_open_fd >= NUM_FD)
+			next_open_fd = 0;
+	}
+	if(oft[next_open_fd].state != FSTATE_CLOSED) {
+		printf("max open files reached\n");
+		return SYSERR;			
+	}
+
+	/* Make an entry in open file table. */
+	ft_ptr = &oft[next_open_fd];
+	ft_ptr->state = FSTATE_OPEN;
+	ft_ptr->mode = flags;	
+	ft_ptr->fileptr = 0;
+	ft_ptr->de = dirent_ptr;
+
+	get_inode_by_num(dev0, dirent_ptr->inode_num, &ft_ptr->in);
+
+	printf("\nFile %s opened successfully.\n",dirent_ptr->name);
+	return next_open_fd;
+	
 }
 
 int fwrite(int fd, void *buf, int nbytes) {
@@ -120,6 +186,13 @@ int fwrite(int fd, void *buf, int nbytes) {
 	if(ft_ptr->state != FSTATE_OPEN) {
 		printf("file is not open\n");
 		return SYSERR;	
+	}
+
+	/* check the file open mode */	
+	if (ft_ptr->mode != O_WRONLY && ft_ptr->mode != O_RDWR)
+	{
+		printf("file not open in write mode\n");
+		return SYSERR;			
 	}
 
 	if ( nbytes <= 0 ) {
@@ -144,7 +217,7 @@ int fwrite(int fd, void *buf, int nbytes) {
 	offset = ft_ptr->fileptr % MDEV_BLOCK_SIZE;
 	len = nbytes < (MDEV_BLOCK_SIZE - offset) ? nbytes : (MDEV_BLOCK_SIZE - offset);
 
-	printf("wrtining: %s\n", (char *) buf);
+	printf("writing: %s\n", (char *) buf);
 
 	if (bwrite(dev0, block, offset, buf, len)!=OK) {
 		printf("block write failed\n");
@@ -216,6 +289,13 @@ int fread(int fd, void *buf, int nbytes) {
 	if(ft_ptr->state != FSTATE_OPEN) {
 		printf("file is not open\n");
 		return SYSERR;	
+	}
+
+	/* check the file open mode */	
+	if (ft_ptr->mode != O_RDONLY && ft_ptr->mode != O_RDWR)
+	{
+		printf("file not open in read mode\n");
+		return SYSERR;			
 	}
 
 	if ( nbytes <= 0 ) {
