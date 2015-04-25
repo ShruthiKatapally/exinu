@@ -1,0 +1,42 @@
+This text file is the report for Assignment-6.
+
+Include a description of implentation, lessons learned and team contributions.
+
+Implementation :
+
+The code uses the skeleton code provided in the assignment. 
+List of files:
+
+include/fs.h : 
+Has the structures for inode, filetable, dirent, directory, fsystem.  
+
+shell/xsh_fstest.c
+Shell script which parses the command line arguments and checks if they are valid. 
+Also calls the file systems calls which are written in fs.c
+
+system/fs.c
+Has the functions for fcreate, fopen, fwrite, fread, fseek, fclose.
+
+system/bs.c
+Creates the block system space and has the bread and bwrite functions.
+
+Lessons learned : 
+
+No major problems were encountered.  
+Invested major time in understading the low level details about the File Systems Implementation.
+
+Through references from the following books helped in reducing the complexity of coding and concepts related to File Systems and Remote File mechansims.
+1.Operating Systems Concepts : The XINU Linksys edition
+2.Design of Unix Operating System by Bach
+
+Team Contributions :
+
+The task division for the assignment was as follows:
+
+Jagadeesh:
+Code and testing of functionality of file create ,file open, file write.
+First round of testing.
+
+Shruthi:
+Code and testing of functionality of file read, file seeking and file close.
+Second round of testing.
