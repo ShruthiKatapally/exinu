@@ -39,8 +39,13 @@ int fileblock_to_diskblock(int dev, int fd, int fileblock);
 
 /* Your code goes here! */
 int fcreate(char *filename, int mode) {
-	int i, j, m;	
+	int i, m;	
+	int block, offset, len;
 	struct dirent * dirent_ptr;	
+
+	/* check filename length */
+	/* check mode */
+	/* check if file already exists */
 
 	/* Allocate next dir entry and initialize it to empty file */
 	// dirent_ptr = &fsd_ptr->root_dir.entry[fsd_ptr->root_dir.numentries++];
@@ -91,10 +96,9 @@ int fcreate(char *filename, int mode) {
 	ft_ptr->in.device = 0;
 	ft_ptr->in.size = 0;
 
-	/* write inode to disk */
+	fsd.inodes_used++;
+	/* write inode to disk */	
 	put_inode_by_num(dev0, ft_ptr->in.id, &ft_ptr->in);
-
-	// allocate data blocks on demand
 
 	printf("\nFile %s created and opened successfully.\n",dirent_ptr->name);
 	return next_open_fd;
@@ -106,6 +110,7 @@ int fwrite(int fd, void *buf, int nbytes) {
 	int i, m;
 	int num_bytes_written = nbytes;
 	int bytes_transferred = 0;
+	int add_eof = 0;
 
 	// verify arguments
 	/* get the entry in open file table. */
@@ -117,10 +122,20 @@ int fwrite(int fd, void *buf, int nbytes) {
 		return SYSERR;	
 	}
 
+	if ( nbytes <= 0 ) {
+		printf("bytes to write is less than 1\n");
+		return SYSERR;
+	}
+
 	/* check if writing given data to file will exceed the max file length */
 	if ( (nbytes + ft_ptr->fileptr) >= (MDEV_BLOCK_SIZE * INODEDIRECTBLOCKS) ) {
 		printf("max file length exceeded\n");
 		return SYSERR;
+	}
+
+	// check if current write operation overrides EOF in the file
+	if ((nbytes + ft_ptr->fileptr) > ft_ptr->in.size) {
+		add_eof = 1;
 	}
 
 	// fill current block
@@ -129,7 +144,7 @@ int fwrite(int fd, void *buf, int nbytes) {
 	offset = ft_ptr->fileptr % MDEV_BLOCK_SIZE;
 	len = nbytes < (MDEV_BLOCK_SIZE - offset) ? nbytes : (MDEV_BLOCK_SIZE - offset);
 
-	printf("wrtining: %s\n",buf);
+	printf("wrtining: %s\n", (char *) buf);
 
 	if (bwrite(dev0, block, offset, buf, len)!=OK) {
 		printf("block write failed\n");
@@ -174,6 +189,12 @@ int fwrite(int fd, void *buf, int nbytes) {
 		}
 		ft_ptr->fileptr += len;
 		nbytes -= len;
+		bytes_transferred += len;
+	}
+	
+	//update other attributes of ft_ptr specially file size (this can be used for EOF handling)
+	if (add_eof) {
+		ft_ptr->in.size = ft_ptr->fileptr;
 	}
 	
 	/* write inode to disk */
@@ -182,9 +203,118 @@ int fwrite(int fd, void *buf, int nbytes) {
 }
 
 int fread(int fd, void *buf, int nbytes) {
+	int block, offset, len;
+	int i, m;
+	int num_bytes_read = nbytes;
+	int bytes_transferred = 0;
+
 	// verify arguments
-	// extract each block from disk and copy to buffer
-	// update the fileptr
+	/* get the entry in open file table. */
+	ft_ptr = &oft[fd];
+	
+	/* check if the file is open */
+	if(ft_ptr->state != FSTATE_OPEN) {
+		printf("file is not open\n");
+		return SYSERR;	
+	}
+
+	if ( nbytes <= 0 ) {
+		printf("bytes to read is less than 1\n");
+		return SYSERR;
+	}
+	
+	/* check if reading from file will exceed EOF */
+	//printf("file ptr: %d\nfile size: %d\n", ft_ptr->fileptr, ft_ptr->in.size);
+	if( (nbytes + ft_ptr->fileptr) > ft_ptr->in.size ) {
+		printf("INFO: bytes to read was greater than file size. data is read only till the end of file.\n");
+		nbytes = ft_ptr->in.size - ft_ptr->fileptr;
+	}
+
+	/* check if reading from file will exceed the max file length */
+	if( (nbytes + ft_ptr->fileptr) >= (MDEV_BLOCK_SIZE * INODEDIRECTBLOCKS) ) {
+		printf("bytes to read is greater than file size\n");
+		return SYSERR;
+	}
+
+	// read current block
+	// get current block number and offset
+	block = ft_ptr->in.blocks[ft_ptr->fileptr/MDEV_BLOCK_SIZE];
+	offset = ft_ptr->fileptr % MDEV_BLOCK_SIZE;
+	len = nbytes < (MDEV_BLOCK_SIZE - offset) ? nbytes : (MDEV_BLOCK_SIZE - offset);
+
+	if (bread(dev0, block, offset, buf, len)!=OK) {
+		printf("block read failed\n");
+		return SYSERR;
+	}
+	ft_ptr->fileptr += len;
+	nbytes -= len;
+	bytes_transferred += len;
+
+	// extract each block from disk and copy to buffer	
+	while(nbytes > 0) {
+		block = ft_ptr->in.blocks[ft_ptr->fileptr/MDEV_BLOCK_SIZE];
+		offset = 0;
+		len = nbytes < MDEV_BLOCK_SIZE ? nbytes : MDEV_BLOCK_SIZE;
+		if (block == -1)
+			break;
+		if (bread(dev0, block, offset, buf+bytes_transferred, len)!=OK) {
+			printf("block write failed\n");
+			return SYSERR;
+		}
+		ft_ptr->fileptr += len;
+		nbytes -= len;
+		bytes_transferred += len;
+	}
+	
+	return num_bytes_read;	
+}
+
+int fseek(int fd, int offset) {
+	// verify arguments
+	/* get the entry in open file table. */
+	ft_ptr = &oft[fd];
+	
+	/* check if the file is open */
+	if(ft_ptr->state != FSTATE_OPEN) {
+		printf("file is not open\n");
+		return SYSERR;	
+	}
+
+	if ( (offset + ft_ptr->fileptr) < 0 ) {
+		printf("beginning of the file reached\n");
+		return SYSERR;
+	}
+	
+	/* check if reading from file will exceed the max file length */
+	if( (offset + ft_ptr->fileptr) >= (MDEV_BLOCK_SIZE * INODEDIRECTBLOCKS) ) {
+		printf("bytes to read is greater than file size\n");
+		return SYSERR;
+	}
+
+	/* check if seek will exceed EOF */
+	if( (offset + ft_ptr->fileptr) >= ft_ptr->in.size ) {
+		printf("bytes to read was greater than file size\n");
+		return SYSERR;
+	}
+	
+	ft_ptr->fileptr = offset + ft_ptr->fileptr;
+	//printf("file ptr after seek: %d\n",ft_ptr->fileptr);
+	return OK;
+}
+
+int fclose(int fd) {
+
+	ft_ptr = &oft[fd];
+	
+	/* check if the file is open */
+	if(ft_ptr->state != FSTATE_OPEN) {
+		printf("file is not open\n");
+		return SYSERR;	
+	}
+	
+	ft_ptr->state = FSTATE_CLOSED;
+
+	return OK;
 }
 
 int mkfs(int dev, int num_inodes) {

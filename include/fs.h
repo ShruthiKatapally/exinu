@@ -69,10 +69,10 @@ struct fsystem {
 /* file and directory functions */
 int fcreate(char *filename, int mode);
 int fwrite(int fd, void *buf, int nbytes);
-/* int fopen(char *filename, int flags);
 int fclose(int fd);
 int fseek(int fd, int offset);
 int fread(int fd, void *buf, int nbytes);
+/* int fopen(char *filename, int flags);
 */
 
 /* filesystem functions */

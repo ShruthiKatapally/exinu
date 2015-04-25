@@ -60,7 +60,7 @@ void testbitmask(void);
     //testbitmask();
 
     buf1 = memget(SIZE*sizeof(char));
-    //buf2 = memget(SIZE*sizeof(char));
+    buf2 = memget(SIZE*sizeof(char));
     
     // Create test file
     fd = fcreate("Test_File", O_CREAT);
@@ -74,23 +74,19 @@ void testbitmask(void);
     }
     
     rval = fwrite(fd,buf1,SIZE);
-    // handling EOF is not done
     if(rval == 0 || rval != SIZE )
     {
         printf("\n\r File write failed");
         goto clean_up;
     }
 
-	printf("\nCommand executed successfully.\n");
-	return OK;
-           
     // Now my file offset is pointing at EOF file, i need to bring it back to start of file
     // Assuming here implementation of fseek is like "original_offset = original_offset + input_offset_from_fseek"
-    //fseek(fd,-rval); 
+    fseek(fd,-rval); 
     
     //read the file 
-    /* rval = fread(fd, buf2, rval);
-    buf2[rval] = EOF; // TODO: Write end of file symbol i.e. slash-zero instead of EOF. I can not do this because of WIKI editor limitation    
+    rval = fread(fd, buf2, rval);
+    buf2[rval] = '\0';
 
     if(rval == 0)
     {
@@ -105,10 +101,13 @@ void testbitmask(void);
     {
         printf("\n\rReturn val for fclose : %d",rval);
     }
-*/
+
+	printf("\nCommand executed successfully.\n");
+	return OK;
+
 clean_up:
     memfree(buf1,SIZE);
-    //memfree(buf2,SIZE);
+    memfree(buf2,SIZE);
     
 #else
     printf("No filesystem support\n");
