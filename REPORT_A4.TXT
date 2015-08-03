@@ -1,0 +1,37 @@
+This text file is the report for Assignment-4.
+
+
+The code uses the skeleton code provided in the assignment. Details of new and updated files, in the order function calls, is given below.
+future.h - Header file that includes definition of future structure and macros for future state and flags.
+xsh_prodcons.c 	- Updated existing file to accept "-f" flag to direct the program to use futures.
+future_alloc.c 	- Allocates memory for the future from heap.
+future_cons.c 	- Consumer function that reads a future and diplays the value.
+future_prod.c 	- Producer function that generates a values and stores in the future.
+future_get.c 	- This function is used to retrieve value from a future based on future state. 
+			FUTURE_EMPTY - calling thread will be in waiting state until future is populated with a value and then value is returned.
+			FUTURE_WAITING - return SYSERR indicating another thread is already waiting on the requested future.
+			FUTURE_VALID - future value is returned.
+future_wait.c 	- This function checks for future state if it is FUTURE_VALID, otherwise sets the current thread to waiting state.
+future_set.c 	- This function sets the value of future based on the future state.
+			FUTURE_EMPTY or FUTURE_WAITING - update the value in future.
+			FUTURE_VALID - return with error, indicates consumer has not yet consumed the value in future.
+future_signal.c - This function will resume the thread that is waiting on the given future.
+future_free.c 	- Free the memory allocated to the given future.
+
+The task division for the assignment was as follows:
+Shruthi:
+prodcons.h
+xsh_prodcons.c
+future_cons.c
+future_alloc.c
+future_get.c
+future_wait.c
+Second round of testing
+
+Jagadeesh:
+future_prod.c
+future_set.c
+future_signal.c
+future_free.c
+First round of testing
+

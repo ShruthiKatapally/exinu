@@ -24,6 +24,9 @@
 *.boot
 *.bin
 
+# gedit temp files
+*~
+
 # Xinu build files
 compile/config/config
 compile/config/y.tab.h

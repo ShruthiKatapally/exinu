@@ -4,7 +4,6 @@
 #include <shell.h>
 #include <limits.h>
 #include <semaphore.h>
-#include <future.h>
 
 /*Global variable for producer consumer*/
 extern int n; /*this is just declaration*/

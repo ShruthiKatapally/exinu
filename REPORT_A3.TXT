@@ -1,0 +1,54 @@
+This text file is the report for Assignment-3.
+
+How exactly is sychronization achieved using semaphore in our assignnment?
+Semaphores provided the perfectly synchronized alternating access of shared data which is best result for the producer-consumer problem. The output displays alternating producer and consumer display statements in proper order. 
+The producer-consumer problem involves an alternating access to shared data by producer and consumer. The producer has to wait for the consumer to consume the shared data before updating it. Similarly, consumer has to wait for the producer to produce the latest value before consuming it. 
+This is acheived using two semaphores, one for producer and one for consumer. A producer will wait on the consumer semaphore to ensure that the consumer has consumed current data. Similarly, a consumer will wait on producer semaphore to ensure that the producer has finished updating the value. 
+On the other hand, after updating the value, producer will call signal on its semaphore to indicate that the consumer can continue execution. Similarly, after consuming the value, consumer will call signal on its semaphore to indicate that the producer can continue execution. 
+In this way, semaphores provide perfect synchronization which is proved from the execution results.
+
+
+Can the above sychronization be achieved with just one semphaore? Why or why not?
+Using a single semaphore can only provide mutual exclusion between multiple processes using shared data. At any instance of time, only a single process can use the shared data by calling wait() on the semaphore. Once the process has finished using the shared data it then call signal() which allows next waiting process (in FIFO order for exinu) to use the shared data. This way a single semaphore effectively provides mutual exclusion between multiple processes. 
+
+When we use a single semaphore to solve the producer-consumer problem, it provides results similar to previous assignment i.e., the producer will finish producing all the values and consumer will be able consume only the last value produced. The code for that will look as below:
+
+Semaphore:
+sid32 semaphore1;
+semaphore1 = semcreate(1);
+
+Producer:
+for( i=1 ; i<=count ; i++ ) {
+wait(semaphore1);
+n++;
+signal(semaphore1);
+}
+
+Consumer:
+for( i=1 ; i<=count ; i++ ) {
+wait(semaphore1);
+n++;
+signal(semaphore1);
+}
+
+As we can see, once the producer calls wait on the semaphore, it continues producing values very fast, as there is not means to signal or stop it indicating that the consumer has to consume the value.
+Thus, the producer will finish producing all the values and consumer will be able consume only the last value produced. 
+Hence, we need two semaphores - produced and consumed. 
+produced is related to producer, which is signalled (call signal(produced)) when data is produced and consumer will wait (call wait(produced)) on this.
+consumed is related to consumer, which is signalled (call signal(consumed)) when data is consumed and producer will wait (call wait(consumed)) on this.
+This method ensures perfectly synchronized alternating access of shared data which is best suitable for the producer-consumer problem.
+
+
+The code uses the skeleton code provided in the assignment.
+
+The task division for the assignment was as follows:
+Shruthi:
+prodcons.h
+xsh_prodcons.c
+Second round of testing
+
+Jagadeesh:
+producer.c
+consumer.c
+First round of testing
+

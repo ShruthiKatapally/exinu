@@ -28,8 +28,8 @@
 
 #ifndef NQENT
 
-/** NQENT = 1 per thread, 2 per list, 2 per sem */
-#define NQENT   (NTHREAD + 4 + NSEM + NSEM)
+/** NQENT = 1 per thread, 2 per list, 2 per sem , 2 per future*/
+#define NQENT   (NTHREAD + 4 + NSEM + NSEM + NFUT + NFUT)
 #endif
 
 #define EMPTY (-2)              /**< null pointer for queues            */
